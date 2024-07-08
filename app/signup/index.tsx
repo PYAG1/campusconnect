@@ -7,14 +7,14 @@ import { Colors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import { Formik } from 'formik';
 import TextInputComponent from '@/components/textinput';
-import { Checkbox } from 'react-native-paper';
+import { ActivityIndicator, Checkbox } from 'react-native-paper';
 
 export default function Index() {
   const [loading, setLoading] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
 
   return (
-    <SafeAreaView style={{ width: sizes.screenWidth, flex: 1, paddingHorizontal: sizes.marginSM, paddingVertical: sizes.marginSM * 3 }}>
+    <SafeAreaView style={{ width: sizes.screenWidth, flex: 1, paddingHorizontal: sizes.marginSM, paddingVertical: sizes.marginSM * 3,backgroundColor:Colors.light.background }}>
       <View style={{ borderRadius: 50, backgroundColor: Colors.light.tint, width: 60, height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
         <Fontisto name="email" size={30} color="white" />
       </View>
@@ -29,7 +29,7 @@ export default function Index() {
         }}
         onSubmit={async (values) => {
           console.log(values);
-          // router.push("/home");
+           router.push("(tabs)");
         }}
       >
         {({
@@ -48,6 +48,15 @@ export default function Index() {
               handleChange={handleChange}
               handleBlur={handleBlur}
               id={'email'}
+              errors={errors}
+              touched={touched}
+            />
+                     <TextInputComponent
+              label={'Name'}
+              values={values}
+              handleChange={handleChange}
+              handleBlur={handleBlur}
+              id={'name'}
               errors={errors}
               touched={touched}
             />
@@ -104,20 +113,26 @@ export default function Index() {
                 paddingHorizontal: 16,
                 backgroundColor: Colors.light.button,
                 marginTop: sizes.marginSM + 5,
+                alignItems: 'center', // Center items horizontally
               }}
               onPress={() => handleSubmit()}
             >
-              <Text
-                style={{
-                  textAlign: 'center',
-                  fontSize: sizes.fontSize[5] + 5,
-                  paddingHorizontal: sizes.marginSM * 1.5,
-                  fontWeight: '600',
-                  color: 'white',
-                }}
-              >
-                {loading ? 'loading' : 'SignUp'}
-              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                {loading ? (
+                  <ActivityIndicator animating={true} color={"white"} />
+                ) : (
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      fontSize: sizes.fontSize[5] + 5,
+                      fontWeight: '600',
+                      color: 'white',
+                    }}
+                  >
+                    Sign Up
+                  </Text>
+                )}
+              </View>
             </Pressable>
           </View>
         )}

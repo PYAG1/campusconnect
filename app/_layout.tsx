@@ -28,11 +28,15 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack initialRouteName="index"  screenOptions={{
+      <Stack screenOptions={{
+        
             headerShown: false,
           }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="signup" />
+        <Stack.Screen name="/signup" />
+        <Stack.Screen options={{
+          presentation: "formSheet"
+        }} name="profile/index" />
       </Stack>
     </ThemeProvider>
   );

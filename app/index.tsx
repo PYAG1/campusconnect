@@ -74,14 +74,14 @@ height:300
         router.navigate("/signup")
         
     }} style={{width:"100%",backgroundColor:Colors.dark.background,padding:sizes.marginSM,borderRadius:10}}>
-        <Text style={{color:Colors.dark.text,textAlign:"center"}}>Sign In</Text>
+        <Text style={{color:Colors.dark.text,textAlign:"center"}}>Sign Up</Text>
     </Pressable>
     <Pressable onPress={()=> {
         closeBottomSheet()
         router.navigate("/signin")
         
     }}  style={{width:"100%",backgroundColor:Colors.light.background,borderWidth:1,padding:sizes.marginSM,borderRadius:10}}>
-    <Text style={{color:Colors.light.text,textAlign:"center"}}>Sign Up</Text>
+    <Text style={{color:Colors.light.text,textAlign:"center"}}>Sign In</Text>
     </Pressable>
 </View>
 </View>

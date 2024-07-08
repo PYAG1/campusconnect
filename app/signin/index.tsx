@@ -7,7 +7,7 @@ import { Colors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import { Formik } from 'formik';
 import TextInputComponent from '@/components/textinput';
-import { Checkbox } from 'react-native-paper';
+import { ActivityIndicator, Checkbox } from 'react-native-paper';
 
 export default function Index() {
   const [loading, setLoading] = useState(false);
@@ -78,20 +78,26 @@ export default function Index() {
                 paddingHorizontal: 16,
                 backgroundColor: Colors.light.button,
                 marginTop: sizes.marginSM + 5,
+                alignItems: 'center', // Center items horizontally
               }}
               onPress={() => handleSubmit()}
             >
-              <Text
-                style={{
-                  textAlign: 'center',
-                  fontSize: sizes.fontSize[5] + 5,
-                  paddingHorizontal: sizes.marginSM * 1.5,
-                  fontWeight: '600',
-                  color: 'white',
-                }}
-              >
-                {loading ? 'loading' : 'Sign In'}
-              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                {loading ? (
+                  <ActivityIndicator animating={true} color={"white"} />
+                ) : (
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      fontSize: sizes.fontSize[5] + 5,
+                      fontWeight: '600',
+                      color: 'white',
+                    }}
+                  >
+                    Sign in
+                  </Text>
+                )}
+              </View>
             </Pressable>
           </View>
         )}
