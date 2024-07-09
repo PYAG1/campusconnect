@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Text, Image, ScrollView, TouchableOpacity, StyleSheet, View } from 'react-native';
+import { Button, Text, Image, ScrollView, TouchableOpacity, StyleSheet, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Colors } from '@/constants/Colors';
@@ -8,6 +8,7 @@ import { AddCircle, DocumentUpload } from 'iconsax-react-native';
 import { Formik } from 'formik';
 import TextInputComponent from '@/components/textinput';
 import DatePickerComponent from '@/components/datepicker';
+import TextAreaComponent from '@/components/textArea';
 
 export default function Create() {
     const [selectedImages, setSelectedImages] = useState<any>([]);
@@ -33,7 +34,8 @@ export default function Create() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Createk Event</Text>
+            <Text style={styles.title}>Create Event</Text>
+            <ScrollView style={{height:"100%"}} showsVerticalScrollIndicator={false}>
             <View>
             <ScrollView horizontal={true} style={styles.scrollView}>
                 {selectedImages.length > 0 ? (
@@ -88,7 +90,7 @@ export default function Create() {
           touched,
           setFieldValue,
         }) => (
-          <View style={{ flexDirection: 'column', gap: 12, width: '100%',marginTop:sizes.marginSM }}>
+          <View style={{ flexDirection: 'column', gap: 12, width: '100%',marginTop:sizes.marginSM,paddingVertical:sizes.marginSM }}>
             <TextInputComponent
          placeholder='Event name'
               values={values}
@@ -98,22 +100,58 @@ export default function Create() {
               errors={errors}
               touched={touched}
             />
-       
-       <DatePickerComponent
+           <TextAreaComponent
+ label={"Description"}
+         placeholder='Enter description'
+              values={values}
+              handleChange={handleChange}
+              handleBlur={handleBlur}
+              id={'description'}
+              errors={errors}
+              touched={touched}
+            />
+            <TextInputComponent
+ label={"Location"}
+         placeholder='Location'
+              values={values}
+              handleChange={handleChange}
+              handleBlur={handleBlur}
+              id={'location'}
+              errors={errors}
+              touched={touched}
+            />
+     <DatePickerComponent
                   values={values}
-                  label={"Date of Incident"}
-                  id={"dateOfIncident"}
+                  label={"Date"}
+                  id={"date"}
                   handleChange={handleChange}
                   touched={touched}
                   Datemode={"date"}
                   errors={errors}
                 />
 
-         
+<DatePickerComponent
+                  values={values}
+                  label={"Time"}
+                  id={"time"}
+                  handleChange={handleChange}
+                  touched={touched}
+                  Datemode={"time"}
+                  errors={errors}
+                />
+
+
+       
+   
+                <Pressable style={{width:"100%",flexDirection:"row",justifyContent:"center",alignItems:"center",backgroundColor:Colors.light.button,paddingVertical:sizes.marginSM,borderRadius:10}}>
+            <Text style={{color:"white"}}> Submit</Text>
+          </Pressable>
+
           </View>
+ 
         )}
       </Formik>
-        
+      </ScrollView>
         </SafeAreaView>
     );
 }
@@ -121,9 +159,9 @@ export default function Create() {
 const styles = StyleSheet.create({
     container: {
         width: sizes.screenWidth,
-        flex: 1,
+     
         paddingHorizontal: sizes.marginSM,
-        paddingVertical: sizes.marginSM * 3,
+        paddingVertical: sizes.marginSM ,
         backgroundColor: Colors.light.background,
     },
     title: {
@@ -145,8 +183,7 @@ const styles = StyleSheet.create({
     removeButton: {
         position: 'absolute',
         top: 5,
-        right: 5,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        right: 5,      backgroundColor: 'rgba(0,0,0,0.5)',
         borderRadius: 15,
         width: 20,
         height: 20,

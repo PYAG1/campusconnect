@@ -1,12 +1,14 @@
 import { Colors } from '@/constants/Colors'
 import { sizes } from '@/constants/sizes&fonts'
 import React,{useEffect, useRef, useState} from 'react'
-import { View,Text, Pressable, TouchableWithoutFeedback } from 'react-native'
+import { View,Text, Pressable, TouchableWithoutFeedback,Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import RBSheet from 'react-native-raw-bottom-sheet';
 import { EvilIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router'
+import Logo from '@/components/logo'
+
 export default function GetStarted() {
     const refRBSheet = useRef<any>();
     const [isVisible, setIsVisible] = useState(false);
@@ -58,7 +60,7 @@ height:300
         }}>
 <View style={{width:"100%",height:"100%",backgroundColor:Colors.light.background,borderRadius: 30,paddingHorizontal:sizes.marginSM,paddingVertical:sizes.marginSM+5,flexDirection:"column",gap:10}}>
 <View style={{width:"100%",flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
-    <View style={{width:50,height:50,backgroundColor:"black",borderRadius:100}}></View>
+ <Logo/>
     <Pressable onPress={closeBottomSheet}>
     <Ionicons name="close-outline" size={24} color="black" />
     </Pressable>

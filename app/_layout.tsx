@@ -37,6 +37,9 @@ export default function RootLayout() {
         <Stack.Screen options={{
           presentation: "formSheet"
         }} name="profile/index" />
+          <Stack.Screen options={{
+          presentation: "fullScreenModal"
+        }} name="eventDetails/index" />
       </Stack>
     </ThemeProvider>
   );

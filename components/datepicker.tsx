@@ -1,5 +1,5 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Button, Pressable, Text, View } from "react-native";
+import { Button, Pressable, Text, TextInput, View } from "react-native";
 
 import { useState } from 'react';
 
@@ -59,7 +59,7 @@ export default function DatePickerComponent({
       )}
 
       <View style={{ position: "relative", flexDirection: "row", alignItems: "center" }}>
-        <Input
+        <TextInput
           style={{
             flex: 1,
             borderWidth: 1,
@@ -86,9 +86,9 @@ export default function DatePickerComponent({
           onPress={showMode}
           style={{
             position: "absolute",
-            right: 15,
-            top: -25,
-            bottom: 0,
+            right: 15, 
+            bottom: 10,
+
             justifyContent: "center"
           }}
         >

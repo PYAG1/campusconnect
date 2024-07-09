@@ -15,7 +15,9 @@ export const Colors = {
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
-  button:'#141417'
+  button:'#141417',
+  orange:"#e0b78a"
+,blue:"#9ec9dc"
   },
   dark: {
     text: '#ECEDEE',

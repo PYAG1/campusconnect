@@ -1,29 +1,46 @@
-import { Image, StyleSheet, Platform, ScrollView, View,Text, Pressable } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Logo from '@/components/logo';
+import { Colors } from '@/constants/Colors';
 import { sizes } from '@/constants/sizes&fonts';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
 import { router } from 'expo-router';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { AntDesign } from '@expo/vector-icons';
+import { Fontisto } from '@expo/vector-icons';
+import { EvilIcons } from '@expo/vector-icons';
 export default function HomeScreen() {
   return (
     <SafeAreaView style={{ width: sizes.screenWidth, height: "100%", paddingHorizontal: sizes.marginSM, paddingVertical: sizes.marginSM ,backgroundColor:Colors.light.background }}>
       <View  style={{width:"100%",flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
         <View style={{flexDirection:"row",gap:10,alignItems:"center"}}>
-          <View style={{width:50,height:50,backgroundColor:Colors.light.button,borderRadius:50}}></View>
-         
+    <Logo/>
+       
         </View>
         <Pressable onPress={()=> router.navigate("/profile")}>
         <Ionicons name="settings-outline" size={24} color="black" />
         </Pressable>
       </View>
       <ScrollView horizontal={false} showsHorizontalScrollIndicator={true} style={{width:"100%",marginTop: 40,height:"100%"}} >
+<Text style={{fontSize:sizes.fontSize[5]+5,fontWeight:"500",marginBottom:sizes.marginSM+3}}>Your Events</Text>
 
+<View style={{width:"100%",flexDirection:"row"}}>
+<View style={{width:100,height:100,backgroundColor:"black",borderRadius:10}}>
+
+</View>
+<Pressable onPress={()=> router.navigate("/eventDetails")} style={{padding:sizes.marginSM,flexDirection:"column",gap:1,alignItems:"flex-start"}}>
+<Text style={{fontSize:sizes.fontSize[5]+3,color:"black"}}>Afro</Text>
+
+
+<View style={{flexDirection:"column",justifyContent:"center",alignItems:"center"}}>
+<Text style={{flexDirection:"row",alignItems:"center"}}><Fontisto name="date" size={18} color="black" />  Tomorrow</Text>
+<Text style={{flexDirection:"row",alignItems:"center"}}><EvilIcons name="location" size={24} color="black" />Accra Mall</Text>
+</View>
+</Pressable>
+<View>
+
+</View>
+</View>
       </ScrollView>
     </SafeAreaView>
   );
