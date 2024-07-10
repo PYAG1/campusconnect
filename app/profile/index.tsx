@@ -23,7 +23,7 @@ export default function index() {
       
     }}
   >
-Yaw Gyekyeknkn
+Yaw Gyek
   </Text>
   <Text
       style={{

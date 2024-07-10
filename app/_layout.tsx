@@ -5,8 +5,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
 
+import { useColorScheme } from '@/hooks/useColorScheme';
+import Toast from 'react-native-toast-message';
+import { UserContextProvider } from '@/config/usercontext';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -27,7 +29,9 @@ export default function RootLayout() {
   }
 
   return (
+    <UserContextProvider>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+  <Toast/>
       <Stack screenOptions={{
         
             headerShown: false,
@@ -41,6 +45,8 @@ export default function RootLayout() {
           presentation: "fullScreenModal"
         }} name="eventDetails/index" />
       </Stack>
+      
     </ThemeProvider>
+    </UserContextProvider>
   );
 }

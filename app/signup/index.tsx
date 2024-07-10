@@ -8,11 +8,42 @@ import { router } from 'expo-router';
 import { Formik } from 'formik';
 import TextInputComponent from '@/components/textinput';
 import { ActivityIndicator, Checkbox } from 'react-native-paper';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, UserRef } from '@/config/firebase';
+import { addDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Index() {
   const [loading, setLoading] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
 
+  const signUp = async (email:string,name:string,password:string,isStudent:boolean,student_Id?:string)=>{
+    
+  setLoading(true)
+  try {
+  
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential?.user;
+
+    if (user) {
+      await AsyncStorage.setItem("CamEmail", email);
+      await addDoc(UserRef, {
+        id:Math.random()*10000000,
+        email,
+        name,
+        isStudent,
+        studentId: student_Id || "",
+        createdAt: new Date().toISOString()
+      });
+      console.log('User registered successfully');
+      router.push("(tabs)");
+    }
+  } catch (error) {
+    console.error( error.message);
+  } finally {
+    setLoading(false);
+  }
+  }
   return (
     <SafeAreaView style={{ width: sizes.screenWidth, flex: 1, paddingHorizontal: sizes.marginSM, paddingVertical: sizes.marginSM * 3,backgroundColor:Colors.light.background }}>
       <View style={{ borderRadius: 50, backgroundColor: Colors.light.tint, width: 60, height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
@@ -23,13 +54,14 @@ export default function Index() {
       <Formik
         initialValues={{
           email: '',
+          name:"",
           password: '',
           isStudent: false,
-          indexNumber: '',
+          student_Id: '',
         }}
-        onSubmit={async (values) => {
-          console.log(values);
-           router.push("(tabs)");
+        onSubmit={async (values, { resetForm }) => {
+     signUp(values.email,values.name,values.password,values.isStudent,values.student_Id)
+    resetForm()
         }}
       >
         {({
@@ -129,7 +161,9 @@ export default function Index() {
                       color: 'white',
                     }}
                   >
-                    Sign Up
+                  {
+                    loading ? "loading" : "Sign Up"
+                  }
                   </Text>
                 )}
               </View>

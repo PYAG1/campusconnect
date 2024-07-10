@@ -8,11 +8,37 @@ import { router } from 'expo-router';
 import { Formik } from 'formik';
 import TextInputComponent from '@/components/textinput';
 import { ActivityIndicator, Checkbox } from 'react-native-paper';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/config/firebase';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Index() {
   const [loading, setLoading] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
 
+
+  const signIn = async (email:string,password:string)=>{
+    
+    setLoading(true)
+    try {
+    
+      
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential?.user;
+
+      if (user) {
+        
+        await AsyncStorage.setItem("CamEmail", email);
+   
+        console.log('User signed in successfully');
+        router.push({ pathname: '(tabs)' });
+      }
+    } catch (error) {
+      console.error( error.message);
+    } finally {
+      setLoading(false);
+    }
+    }
   return (
     <SafeAreaView style={{ width: sizes.screenWidth, flex: 1, paddingHorizontal: sizes.marginSM, paddingVertical: sizes.marginSM * 3 }}>
       <View style={{ borderRadius: 50, backgroundColor: Colors.light.tint, width: 60, height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
@@ -26,9 +52,10 @@ export default function Index() {
           password: '',
       
         }}
-        onSubmit={async (values) => {
-          console.log(values);
-          // router.push("/home");
+        onSubmit={async (values, { resetForm }) => {
+      await signIn(values.email,values.password)
+    router.push("(tabs)")
+    resetForm()
         }}
       >
         {({

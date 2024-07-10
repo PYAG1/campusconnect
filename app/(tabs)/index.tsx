@@ -1,15 +1,55 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View ,Image} from 'react-native';
 
 import Logo from '@/components/logo';
 import { Colors } from '@/constants/Colors';
 import { sizes } from '@/constants/sizes&fonts';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router , useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
 import { Fontisto } from '@expo/vector-icons';
 import { EvilIcons } from '@expo/vector-icons';
+import { getDocs, query, where } from 'firebase/firestore';
+import { EventRef } from '@/config/firebase';
+import { useUserContext } from '@/config/usercontext';
+import { useEffect, useState } from 'react';
+import { EventData } from '@/constants/Types';
 export default function HomeScreen() {
+useEffect(()=>{
+fetchData()
+getYourEvents()
+},[])
+  const [filteredEvents,setFilteredEvents]= useState<any>([])
+  const {userEmail,fetchData}= useUserContext()
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+  await getYourEvents()
+    setRefreshing(false);
+  };
+ 
+
+
+
+  const getYourEvents= async ()=>{
+  const q = query(EventRef,where("createdBy","==",userEmail))
+  const snapshot = await getDocs(q)
+  if(!snapshot.empty){
+    const events = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }))
+    setFilteredEvents(events)
+  }
+else{
+  setFilteredEvents([])
+}
+
+
+  }
+
+  console.log(filteredEvents)
   return (
     <SafeAreaView style={{ width: sizes.screenWidth, height: "100%", paddingHorizontal: sizes.marginSM, paddingVertical: sizes.marginSM ,backgroundColor:Colors.light.background }}>
       <View  style={{width:"100%",flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
@@ -24,23 +64,29 @@ export default function HomeScreen() {
       <ScrollView horizontal={false} showsHorizontalScrollIndicator={true} style={{width:"100%",marginTop: 40,height:"100%"}} >
 <Text style={{fontSize:sizes.fontSize[5]+5,fontWeight:"500",marginBottom:sizes.marginSM+3}}>Your Events</Text>
 
-<View style={{width:"100%",flexDirection:"row"}}>
-<View style={{width:100,height:100,backgroundColor:"black",borderRadius:10}}>
-
+{
+  filteredEvents?.map((item:EventData,index:number)=>{
+    return (
+      <Pressable key={index} onPress={()=> router.navigate("/eventDetails")} style={{width:"100%",flexDirection:"row"}}>
+<View style={{width:100,height:100,}}>
+<Image source={{uri:item.images[0]}} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:10}}/>
 </View>
-<Pressable onPress={()=> router.navigate("/eventDetails")} style={{padding:sizes.marginSM,flexDirection:"column",gap:1,alignItems:"flex-start"}}>
-<Text style={{fontSize:sizes.fontSize[5]+3,color:"black"}}>Afro</Text>
+<View style={{padding:sizes.marginSM,flexDirection:"column",gap:1,alignItems:"flex-start"}}>
+<Text style={{fontSize:sizes.fontSize[5]+3,color:"black"}}>{item?.eventName}</Text>
 
 
 <View style={{flexDirection:"column",justifyContent:"center",alignItems:"center"}}>
-<Text style={{flexDirection:"row",alignItems:"center"}}><Fontisto name="date" size={18} color="black" />  Tomorrow</Text>
-<Text style={{flexDirection:"row",alignItems:"center"}}><EvilIcons name="location" size={24} color="black" />Accra Mall</Text>
+<Text style={{flexDirection:"row",alignItems:"center"}}><Fontisto name="date" size={18} color="black" />{item?.date}}</Text>
+<Text style={{flexDirection:"row",alignItems:"center"}}><EvilIcons name="location" size={24} color="black" />{item?.location}</Text>
 </View>
-</Pressable>
+</View>
 <View>
 
 </View>
-</View>
+</Pressable>
+    )
+  })
+}
       </ScrollView>
     </SafeAreaView>
   );
