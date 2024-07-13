@@ -1,112 +1,229 @@
-import { Pressable, ScrollView, StyleSheet, Text, View ,Image} from 'react-native';
-
+import React, { useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View, Image, RefreshControl, ActivityIndicator } from 'react-native';
 import Logo from '@/components/logo';
 import { Colors } from '@/constants/Colors';
 import { sizes } from '@/constants/sizes&fonts';
 import { Ionicons } from '@expo/vector-icons';
-import { router , useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router'; 
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AntDesign } from '@expo/vector-icons';
 import { Fontisto } from '@expo/vector-icons';
 import { EvilIcons } from '@expo/vector-icons';
 import { getDocs, query, where } from 'firebase/firestore';
 import { EventRef } from '@/config/firebase';
 import { useUserContext } from '@/config/usercontext';
-import { useEffect, useState } from 'react';
 import { EventData } from '@/constants/Types';
-export default function HomeScreen() {
-useEffect(()=>{
-fetchData()
-getYourEvents()
-},[])
-  const [filteredEvents,setFilteredEvents]= useState<any>([])
-  const {userEmail,fetchData}= useUserContext()
-  const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = async () => {
+
+export default function HomeScreen() {
+  const [filteredEvents, setFilteredEvents] = useState<EventData[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { userEmail, fetchData } = useUserContext();
+
+  useEffect(() => {
+    fetchData();
+    getYourEvents();
+  }, []);
+
+  const getYourEvents = async () => {
+    try {
+      setLoading(true);
+      const q = query(EventRef, where('createdBy', '==', userEmail));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const events = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as EventData[];
+        setFilteredEvents(events);
+      } else {
+        setFilteredEvents([]);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
     setRefreshing(true);
-  await getYourEvents()
+    await getYourEvents();
     setRefreshing(false);
   };
- 
 
-
-
-  const getYourEvents= async ()=>{
-  const q = query(EventRef,where("createdBy","==",userEmail))
-  const snapshot = await getDocs(q)
-  if(!snapshot.empty){
-    const events = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }))
-    setFilteredEvents(events)
-  }
-else{
-  setFilteredEvents([])
-}
-
-
-  }
-
-  console.log(filteredEvents)
   return (
-    <SafeAreaView style={{ width: sizes.screenWidth, height: "100%", paddingHorizontal: sizes.marginSM, paddingVertical: sizes.marginSM ,backgroundColor:Colors.light.background }}>
-      <View  style={{width:"100%",flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
-        <View style={{flexDirection:"row",gap:10,alignItems:"center"}}>
-    <Logo/>
-       
-        </View>
-        <Pressable onPress={()=> router.navigate("/profile")}>
-        <Ionicons name="settings-outline" size={24} color="black" />
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Logo />
+        <Pressable onPress={() => router.navigate('/profile')}>
+          <Ionicons name="settings-outline" size={24} color="black" />
         </Pressable>
       </View>
-      <ScrollView horizontal={false} showsHorizontalScrollIndicator={true} style={{width:"100%",marginTop: 40,height:"100%"}} >
-<Text style={{fontSize:sizes.fontSize[5]+5,fontWeight:"500",marginBottom:sizes.marginSM+3}}>Your Events</Text>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Your Events</Text>
+        <View style={{width: "100%", flexDirection: "column", alignItems: "center"}}>
+          {loading ? (
+            <ActivityIndicator size="large" color={Colors.light.button} />
+          ) : filteredEvents.length === 0 ? (
+           <View style={styles.eventContainer}>
+            <View style={{    width: 100,
+    height: 100,
+    borderRadius: 10,backgroundColor:"#f2f2f3",flexDirection:"row",justifyContent:"center",alignItems:"center"}}><Ionicons name="ticket-outline" size={35} color="#bababa" /></View>
+    <View style={{paddingHorizontal:sizes.marginSM}}>
 
+      <Text style={{fontSize:sizes.fontSize[5]+2,fontWeight:500}}>No Events</Text>
+      <Text style={{color:Colors.light.grey}}>Events created and been verified will show here</Text>
+    </View>
+           </View>
+          ) : (
+            filteredEvents.map((item: EventData, index: number) => (
+              <Pressable
+                key={index}
+                onPress={() => router.navigate('/eventDetails')}
+                style={styles.eventContainer}
+              >
+                <Image
+                  source={{ uri: item.images[0] }}
+                  style={styles.eventImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.eventDetails}>
+                  <Text style={styles.eventName}>{item.eventName}</Text>
+                  <View style={styles.infoContainer}>
+                    <Text style={styles.infoText}>
+                      <Fontisto name="date" size={18} color="black" /> {new Date(item.date).toLocaleDateString('en-GB')}
+                    </Text>
+                    <Text style={styles.infoText}>
+                      <EvilIcons name="location" size={24} color="black" /> {item.location}
+                    </Text>
+                  </View>
+                </View>
+              </Pressable>
+            ))
+          )}
+        </View>
+        <Text style={styles.title}>Pending</Text>
 {
-  filteredEvents?.map((item:EventData,index:number)=>{
-    return (
-      <Pressable key={index} onPress={()=> router.navigate("/eventDetails")} style={{width:"100%",flexDirection:"row"}}>
-<View style={{width:100,height:100,}}>
-<Image source={{uri:item.images[0]}} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:10}}/>
-</View>
-<View style={{padding:sizes.marginSM,flexDirection:"column",gap:1,alignItems:"flex-start"}}>
-<Text style={{fontSize:sizes.fontSize[5]+3,color:"black"}}>{item?.eventName}</Text>
-
-
-<View style={{flexDirection:"column",justifyContent:"center",alignItems:"center"}}>
-<Text style={{flexDirection:"row",alignItems:"center"}}><Fontisto name="date" size={18} color="black" />{item?.date}}</Text>
-<Text style={{flexDirection:"row",alignItems:"center"}}><EvilIcons name="location" size={24} color="black" />{item?.location}</Text>
-</View>
-</View>
-<View>
-
-</View>
-</Pressable>
-    )
-  })
+          filteredEvents.filter(item => item.isVerified === false).map((item: EventData, index: number) => (
+            <Pressable
+              key={index}
+              onPress={() => router.navigate('/eventDetails')}
+              style={styles.eventContainer}
+            >
+              <Image
+                source={{ uri: item.images[0] }}
+                style={styles.eventImage}
+                resizeMode="cover"
+              />
+              <View style={styles.eventDetails}>
+                <Text style={styles.eventName}>{item.eventName}</Text>
+                <View style={styles.infoContainer}>
+                  <Text style={styles.infoText}>
+                    <Fontisto name="date" size={18} color="black" /> {new Date(item.date).toLocaleDateString('en-GB')}
+                  </Text>
+           
+                  {item.isVerified === false && (
+                    <View style={styles.badge}>
+                      <View style={styles.badgeIcon} />
+                      <Text style={styles.badgeText}>Not Verified</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            </Pressable>
+          ))
 }
+     
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    paddingHorizontal: sizes.marginSM,
+    paddingVertical: sizes.marginSM,
+    backgroundColor: Colors.light.background,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: sizes.marginSM,
+  },
+  scrollViewContent: {
+    alignItems: "flex-start",
+    minHeight: "auto"
+  },
+  title: {
+    fontSize: sizes.fontSize[5] + 5,
+    fontWeight: '500',
+    marginBottom: sizes.marginSM + 3,
+    textAlign: 'left',
+  },
+  noEventsText: {
+    fontSize: sizes.fontSize[4],
+    color: 'gray',
+    marginTop: sizes.marginSM,
+  },
+  eventContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    marginBottom: sizes.marginSM,
+  },
+  eventImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  },
+  eventDetails: {
+    flex: 1,
+    padding: sizes.marginSM,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  eventName: {
+    fontSize: sizes.fontSize[5] + 3,
+    color: 'black',
+  },
+  infoContainer: {
+    flexDirection: 'column',
+  },
+  infoText: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  pendingText: {
+    color: 'black',
+    marginTop: sizes.marginSM,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#bcc0c5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  badgeIcon: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#3f4042',
+    marginRight: 4,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: 'black',
   },
 });

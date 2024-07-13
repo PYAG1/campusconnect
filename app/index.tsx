@@ -42,7 +42,7 @@ export default function GetStarted() {
             container:{
 backgroundColor:"transparent",
 padding:10,
-height:300
+height:310
             },
           wrapper: {
             backgroundColor: 'rgba(0,0,0,0.5)' ,

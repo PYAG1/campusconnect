@@ -1,11 +1,8 @@
+import React, { useState } from 'react';
+import { Button, Pressable, Text, TextInput, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Button, Pressable, Text, TextInput, View } from "react-native";
-
-import { useState } from 'react';
-
 import { Fontisto } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
-import { Input } from '@rneui/base';
 import { sizes } from '@/constants/sizes&fonts';
 import { Colors } from '@/constants/Colors';
 
@@ -45,8 +42,16 @@ export default function DatePickerComponent({
     setShow(true);
   };
 
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-GB'); // dd-mm-yy format
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { hour12: false }); // hh-mm-ss format
+  };
+
   return (
-    <View style={{ flexDirection: "column", gap: 12, width: "100%" }}>
+    <View style={{ flexDirection: 'column', gap: 12, width: '100%' }}>
       {label && (
         <Text
           style={{
@@ -57,60 +62,55 @@ export default function DatePickerComponent({
           {label}
         </Text>
       )}
-
-      <View style={{ position: "relative", flexDirection: "row", alignItems: "center" }}>
+      <View style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}>
         <TextInput
           style={{
             flex: 1,
             borderWidth: 1,
-            borderColor: errors[id] ? "#F44336" : "#ccc",
+            borderColor: errors[id] ? '#F44336' : '#ccc',
             fontSize: 16,
             borderRadius: 8,
             color: Colors.light.text,
             paddingVertical: 11,
             paddingHorizontal: 16,
             backgroundColor: Colors.light.tint2,
-            position:"relative"
-            
           }}
           value={
             date
-              ? Datemode === "date"
-                ? date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })
-                : date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-              : 'Not set'
+              ? Datemode === 'date'
+                ? formatDate(date)
+                : formatTime(date)
+              : placeholder || 'Not set'
           }
           editable={false}
         />
         <Pressable
           onPress={showMode}
           style={{
-            position: "absolute",
-            right: 15, 
-            bottom: 10,
-
-            justifyContent: "center"
+            position: 'absolute',
+            right: 15,
+            justifyContent: 'center',
           }}
         >
-          {Datemode === "date" ? (
-            <Fontisto name="date" size={24} color={Colors.light.button} />
+          {Datemode === 'date' ? (
+            <Fontisto name='date' size={24} color={Colors.light.button} />
           ) : (
-            <Ionicons name="time-outline" size={24} color={Colors.light.button} />
+            <Ionicons name='time-outline' size={24} color={Colors.light.button} />
           )}
         </Pressable>
       </View>
       {show && (
         <DateTimePicker
-          testID="dateTimePicker"
+          testID='dateTimePicker'
           value={date || new Date()}
           mode={Datemode}
           is24Hour={true}
-          display="default"
+          display='default'
           onChange={onChange}
         />
       )}
       {errors && touched && touched[id] && errors[id] ? (
-        <Text style={{ color: "#f5564a", marginTop: 5 }}>{errors[id]}</Text>
+        <Text style={{ color: '#f5564a', marginTop: 5 }}>{errors[id]}</Text>
       ) : null}
     </View>
   );

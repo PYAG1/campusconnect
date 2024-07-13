@@ -98,7 +98,8 @@ fetchData()
                 images: downloadURLs,
                 createdAt: new Date().toISOString(),
                 createdBy:userEmail,
-                isVerified:false
+                isVerified:false,
+                savedBy:[]
             });
             console.log('Event created successfully');
         } catch (error) {
@@ -111,7 +112,7 @@ fetchData()
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.title}>Create Event</Text>
-            <ScrollView style={{ height: "100%" }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ height: "100%" ,paddingVertical:sizes.marginSM+5}} showsVerticalScrollIndicator={false}>
                 <View>
                     <ScrollView horizontal={true} style={styles.scrollView}>
                         {selectedImages.length > 0 ? (
@@ -160,7 +161,7 @@ fetchData()
                         touched,
                         setFieldValue,
                     }) => (
-                        <View style={{ flexDirection: 'column', gap: 12, width: '100%', marginTop: sizes.marginSM, paddingVertical: sizes.marginSM }}>
+                        <View style={{ flexDirection: 'column', gap: 12, width: '100%', marginTop: sizes.marginSM, paddingVertical: sizes.marginSM*1.5 }}>
                             <TextInputComponent
                                 placeholder='Event name'
                                 values={values}
@@ -225,12 +226,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: sizes.marginSM,
         paddingVertical: sizes.marginSM,
         backgroundColor: Colors.light.background,
+        height:"100%"
     },
     title: {
         fontSize: sizes.fontSize[5] + 5,
     },
     scrollView: {
         marginVertical: sizes.marginSM,
+        
         maxHeight: 220,
     },
     imageContainer: {
