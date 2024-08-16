@@ -1,54 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, Image, RefreshControl, ActivityIndicator } from 'react-native';
 import Logo from '@/components/logo';
+import { useUserContext } from '@/config/usercontext';
 import { Colors } from '@/constants/Colors';
 import { sizes } from '@/constants/sizes&fonts';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router'; 
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Fontisto } from '@expo/vector-icons';
-import { EvilIcons } from '@expo/vector-icons';
-import { getDocs, query, where } from 'firebase/firestore';
-import { EventRef } from '@/config/firebase';
-import { useUserContext } from '@/config/usercontext';
 import { EventData } from '@/constants/Types';
+import { EvilIcons, Fontisto, Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function HomeScreen() {
-  const [filteredEvents, setFilteredEvents] = useState<EventData[]>([]);
+
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const { userEmail, fetchData } = useUserContext();
+  const [loadingPending, setLoadingPending] = useState(false);
+
+  const { loading,filteredEvents,getYourEvents} = useUserContext();
 
   useEffect(() => {
-    fetchData();
+ 
     getYourEvents();
   }, []);
 
-  const getYourEvents = async () => {
-    try {
-      setLoading(true);
-      const q = query(EventRef, where('createdBy', '==', userEmail));
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        const events = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as EventData[];
-        setFilteredEvents(events);
-      } else {
-        setFilteredEvents([]);
-      }
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    } finally {
-      setLoading(false);
-    }
+  const getPendingEvents = async () => {
+    setLoadingPending(true);
+    await getYourEvents(); 
+    setLoadingPending(false);
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await getYourEvents();
+    await getPendingEvents();
     setRefreshing(false);
   };
 
@@ -69,24 +51,34 @@ export default function HomeScreen() {
       >
         <Text style={styles.title}>Your Events</Text>
         <View style={{width: "100%", flexDirection: "column", alignItems: "center"}}>
-          {loading ? (
+          {loading || refreshing ? (
             <ActivityIndicator size="large" color={Colors.light.button} />
           ) : filteredEvents.length === 0 ? (
            <View style={styles.eventContainer}>
-            <View style={{    width: 100,
-    height: 100,
-    borderRadius: 10,backgroundColor:"#f2f2f3",flexDirection:"row",justifyContent:"center",alignItems:"center"}}><Ionicons name="ticket-outline" size={35} color="#bababa" /></View>
-    <View style={{paddingHorizontal:sizes.marginSM}}>
-
-      <Text style={{fontSize:sizes.fontSize[5]+2,fontWeight:500}}>No Events</Text>
-      <Text style={{color:Colors.light.grey}}>Events created and been verified will show here</Text>
-    </View>
+            <View style={{ width: 100, height: 100, borderRadius: 10, backgroundColor: "#f2f2f3", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+              <Ionicons name="ticket-outline" size={35} color="#bababa" />
+            </View>
+            <View style={{ paddingHorizontal: sizes.marginSM }}>
+              <Text style={{ fontSize: sizes.fontSize[5] + 2, fontWeight: 500 }}>No Events</Text>
+              <Text style={{ color: Colors.light.grey }}>Events created and been verified will show here</Text>
+            </View>
            </View>
           ) : (
             filteredEvents.map((item: EventData, index: number) => (
               <Pressable
                 key={index}
-                onPress={() => router.navigate('/eventDetails')}
+                onPress={() => router.push({
+                  pathname: "/eventDetails",
+                  params: {
+                    eventName: item.eventName,
+                    date: item.date,
+                    description: item.description,
+                    images: item.images,
+                    isVerified: item.isVerified as string,
+                    location: item.location, 
+                    time: item.time,
+                  }
+                })}
                 style={styles.eventContainer}
               >
                 <Image
@@ -110,37 +102,68 @@ export default function HomeScreen() {
           )}
         </View>
         <Text style={styles.title}>Pending</Text>
-{
-          filteredEvents.filter(item => item.isVerified === false).map((item: EventData, index: number) => (
-            <Pressable
-              key={index}
-              onPress={() => router.navigate('/eventDetails')}
-              style={styles.eventContainer}
-            >
-              <Image
-                source={{ uri: item.images[0] }}
-                style={styles.eventImage}
-                resizeMode="cover"
-              />
-              <View style={styles.eventDetails}>
-                <Text style={styles.eventName}>{item.eventName}</Text>
-                <View style={styles.infoContainer}>
-                  <Text style={styles.infoText}>
-                    <Fontisto name="date" size={18} color="black" /> {new Date(item.date).toLocaleDateString('en-GB')}
-                  </Text>
-           
-                  {item.isVerified === false && (
-                    <View style={styles.badge}>
-                      <View style={styles.badgeIcon} />
-                      <Text style={styles.badgeText}>Not Verified</Text>
-                    </View>
-                  )}
-                </View>
+        <View style={{ width: "100%", flexDirection: "column", alignItems: "center" }}>
+          {loadingPending ? (
+            <ActivityIndicator size="large" color={Colors.light.button} />
+          ) : filteredEvents.filter(item => item.isVerified === false).length === 0 ? (
+            <View style={styles.eventContainer}>
+              <View style={{
+                width: 100,
+                height: 100,
+                borderRadius: 10,
+                backgroundColor: "#f2f2f3",
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center"
+              }}>
+                <Ionicons name="ticket-outline" size={35} color="#bababa" />
               </View>
-            </Pressable>
-          ))
-}
-     
+              <View style={{ paddingHorizontal: sizes.marginSM }}>
+                <Text style={{ fontSize: sizes.fontSize[5] + 2, fontWeight: 500 }}>No Pending Events</Text>
+                <Text style={{ color: Colors.light.grey }}>No events are currently pending verification.</Text>
+              </View>
+            </View>
+          ) : (
+            filteredEvents.filter(item => item.isVerified === false).map((item: EventData, index: number) => (
+              <Pressable
+                key={index}
+                onPress={() => router.push({
+                  pathname: '/eventDetails',
+                  params: {
+                    eventName: item.eventName,
+                    date: item.date,
+                    description: item.description,
+                    images: item.images,
+                    isVerified: item.isVerified as string,
+                    location: item.location,
+                    time: item.time,
+                  }
+                })}
+                style={styles.eventContainer}
+              >
+                <Image
+                  source={{ uri: item.images[0] }}
+                  style={styles.eventImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.eventDetails}>
+                  <Text style={styles.eventName}>{item.eventName}</Text>
+                  <View style={styles.infoContainer}>
+                    <Text style={styles.infoText}>
+                      <Fontisto name="date" size={18} color="black" /> {new Date(item.date).toLocaleDateString('en-GB')}
+                    </Text>
+                    {item.isVerified === false && (
+                      <View style={styles.badge}>
+                        <View style={styles.badgeIcon} />
+                        <Text style={styles.badgeText}>Not Verified</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </Pressable>
+            ))
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

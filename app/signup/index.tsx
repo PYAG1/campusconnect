@@ -36,10 +36,12 @@ export default function Index() {
         createdAt: new Date().toISOString()
       });
       console.log('User registered successfully');
-      router.push("(tabs)");
+      router.push("/(tabs)");
     }
   } catch (error) {
-    console.error( error.message);
+    const err = error as Error;
+
+    console.error( err.message);
   } finally {
     setLoading(false);
   }
@@ -130,7 +132,7 @@ export default function Index() {
             )}
 
             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-end' }}>
-              <Pressable onPress={() => router.push('signin')}>
+              <Pressable onPress={() => router.push('/signin')}>
                 <Text style={{ fontSize: sizes.fontSize[2], textDecorationLine:"underline" }}>
                   I have an account
                 </Text>

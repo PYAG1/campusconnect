@@ -31,10 +31,12 @@ export default function Index() {
         await AsyncStorage.setItem("CamEmail", email);
    
         console.log('User signed in successfully');
-        router.push({ pathname: '(tabs)' });
+        router.push({ pathname: '/(tabs)' });
       }
     } catch (error) {
-      console.error( error.message);
+      const err = error as Error;
+
+      console.error( err.message);
     } finally {
       setLoading(false);
     }
@@ -54,7 +56,7 @@ export default function Index() {
         }}
         onSubmit={async (values, { resetForm }) => {
       await signIn(values.email,values.password)
-    router.push("(tabs)")
+    router.push("/(tabs)")
     resetForm()
         }}
       >

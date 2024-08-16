@@ -50,7 +50,7 @@ fetchData()
                 const response = await fetch(image);
                 const blob = await response.blob();
 
-                const filename = image.substring(image.lastIndexOf('/') + 1);
+                const filename= image.substring(image.lastIndexOf('/') + 1) 
                 const storageRef = ref(storageBucket, `images/${filename}`);
 
                 const uploadTask = uploadBytesResumable(storageRef, blob);
@@ -99,7 +99,8 @@ fetchData()
                 createdAt: new Date().toISOString(),
                 createdBy:userEmail,
                 isVerified:false,
-                savedBy:[]
+                savedBy:[],
+                eventID: Math.ceil(Math.random()*1000000000)
             });
             console.log('Event created successfully');
         } catch (error) {
