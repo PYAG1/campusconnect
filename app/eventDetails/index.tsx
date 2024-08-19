@@ -17,9 +17,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EventRef, storageBucket } from "@/config/firebase";
 import { useUserContext } from "@/config/usercontext";
-import { EventData } from "@/constants/Types";
+import { CoordinateTypes, EventData } from "@/constants/Types";
 import { formatDate } from "@/constants/formatDate";
 import { Ionicons } from "@expo/vector-icons";
+import openMap from 'react-native-open-maps';
 import {
   deleteDoc,
   doc,
@@ -29,7 +30,7 @@ import {
   where,
 } from "firebase/firestore";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import MapView from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { deleteObject, ref } from "firebase/storage";
 
@@ -115,6 +116,14 @@ const EditEvent=()=>{
 
   const { loading, setLoading,getYourEvents } = useUserContext();
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+  const [mapLoaded, setMapLoaded] = useState(false);
+  
   const fetchEvent = async () => {
     setLoading(true);
     try {
@@ -128,7 +137,17 @@ const EditEvent=()=>{
 
       if (!querySnapshot.empty) {
         const eventData = querySnapshot.docs[0].data();
-        setEvent(eventData); // Make sure setEvent is correctly defined in your component
+        setEvent(eventData); 
+        console.log("fetched",eventData.location)
+        if (eventData.location.MapDetails.lat && eventData.location.MapDetails.lng) {
+          setMapRegion({
+            latitude: eventData.location.MapDetails.lat,
+            longitude: eventData.location.MapDetails.lng,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          });
+          setMapLoaded(true);
+        }
       } else {
         console.log("No event found with the provided ID.");
       }
@@ -141,7 +160,19 @@ const EditEvent=()=>{
 
   useEffect(() => {
     fetchEvent();
+    if (event?.location?.MapDetails?.lat && event?.location?.MapDetails?.lng) {
+      setMapRegion({
+        latitude: event.location.MapDetails.lat,
+        longitude: event.location.MapDetails.lng,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
+      setMapLoaded(true);
+    }
+
   }, []);
+
+console.log("data",event?.location)
 
   const deleteEvent = async (eventID: number) => {
     setIsDeleting(true);
@@ -195,15 +226,17 @@ const EditEvent=()=>{
     }
   };
 
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ height:"100%" }}>
         <Button title="Back" onPress={() => router.back()}></Button>
         <ScrollView
           style={{
-            marginVertical: sizes.marginSM,
+          //  marginVertical: sizes.marginSM,
             paddingHorizontal: sizes.marginSM,
           }}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: sizes.marginSM }}
         >
           <View
@@ -263,7 +296,7 @@ const EditEvent=()=>{
 
             <Text style={{ fontSize: sizes.fontSize[3] }}>Location</Text>
             <Divider style={{ backgroundColor: Colors.light.tint }} />
-            <Text style={{ fontSize: sizes.fontSize[5] }}>Accra Mall</Text>
+            <Text style={{ fontSize: sizes.fontSize[5] }}>{event?.location?.description}</Text>
             <View
               style={{
                 width: "100%",
@@ -272,15 +305,27 @@ const EditEvent=()=>{
                 marginBottom: sizes.marginSM,
               }}
             >
-              <MapView
-                style={{ width: "100%", height: "100%", borderRadius: 20 }}
-                initialRegion={{
-                  latitude: 37.78825,
-                  longitude: -122.4324,
-                  latitudeDelta: 0.0922,
-                  longitudeDelta: 0.0421,
-                }}
-              />
+            {mapLoaded ? (
+<Pressable onPress={()=>{
+  openMap({latitude:event?.location.MapDetails.lat,longitude:event?.location.MapDetails.lng})
+}}>
+<MapView
+    style={{ width: "100%", height: "100%", borderRadius: 20 }}
+    region={mapRegion}
+  >
+    <Marker
+      coordinate={{
+        latitude: event?.location.MapDetails.lat,
+        longitude: event?.location.MapDetails.lng,
+      }}
+    />
+  </MapView>
+</Pressable>
+) : (
+  <View style={{ width: "100%", height: "100%", justifyContent: 'center', alignItems: 'center' }}>
+    <Text>Loading map...</Text>
+  </View>
+)}
             </View>
           </View>
         </ScrollView>

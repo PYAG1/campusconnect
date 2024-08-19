@@ -1,3 +1,5 @@
+import { Point } from "react-native-google-places-autocomplete";
+
 export interface EventData {
   eventID: number;
   createdAt: string;
@@ -7,10 +9,18 @@ export interface EventData {
   eventName: string;
   images: ImageObject[] ;
   isVerified: boolean | string;
-  location: string;
+  location:MapData;
   time: string;
 }
 export interface ImageObject {
   downloadURL: string;
   path: string;
+}
+export   interface MapData {
+  description:string;
+  MapDetails:Point | undefined
+}
+export interface CoordinateTypes{
+  long:number | undefined;
+  lat:number | undefined
 }
