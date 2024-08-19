@@ -1,21 +1,24 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
+import "react-native-reanimated";
 
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-import Toast from 'react-native-toast-message';
-import { UserContextProvider } from '@/config/usercontext';
+import { useColorScheme } from "@/hooks/useColorScheme";
+import Toast from "react-native-toast-message";
+import { UserContextProvider } from "@/config/usercontext";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
   useEffect(() => {
@@ -30,23 +33,27 @@ export default function RootLayout() {
 
   return (
     <UserContextProvider>
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-  <Toast/>
-      <Stack screenOptions={{
-        
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <Toast />
+        <Stack
+          screenOptions={{
             headerShown: false,
-          }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="/signup" />
-        <Stack.Screen options={{
-          presentation: "formSheet"
-        }} name="profile/index" />
-          <Stack.Screen options={{
-          presentation: "fullScreenModal"
-        }} name="eventDetails/index" />
-      </Stack>
-      
-    </ThemeProvider>
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="signup" />
+          <Stack.Screen name="editEvent/index" />
+          <Stack.Screen
+            options={{
+              presentation: "formSheet",
+            }}
+            name="profile/index"
+          />
+          <Stack.Screen
+            name="eventDetails/index"
+          />
+        </Stack>
+      </ThemeProvider>
     </UserContextProvider>
   );
 }

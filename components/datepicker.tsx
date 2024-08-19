@@ -107,6 +107,7 @@ export default function DatePickerComponent({
           is24Hour={true}
           display='default'
           onChange={onChange}
+          minimumDate={new Date()}
         />
       )}
       {errors && touched && touched[id] && errors[id] ? (

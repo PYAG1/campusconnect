@@ -1,7 +1,9 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 import { type PropsWithChildren } from 'react';
 import Toast from 'react-native-toast-message';
-
+import 'react-native-reanimated'
+import 'react-native-gesture-handler'
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 /**
  * This file is web-only and used to configure the root HTML for every web page during static rendering.
  * The contents of this function only run in Node.js environments and do not have access to the DOM or browser APIs.
@@ -27,7 +29,11 @@ export default function Root({ children }: PropsWithChildren) {
       </head>
       <body>
       <Toast/>
-        {children}</body>
+ 
+        {children}
+   
+        </body>
+       
     </html>
   );
 }

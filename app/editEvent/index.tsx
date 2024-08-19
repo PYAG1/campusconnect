@@ -1,31 +1,34 @@
-import DatePickerComponent from "@/components/datepicker";
-import TextAreaComponent from "@/components/textArea";
-import TextInputComponent from "@/components/textinput";
-import { EventRef, storageBucket } from "@/config/firebase";
-import { useUserContext } from "@/config/usercontext";
-import { Colors } from "@/constants/Colors";
-import { sizes } from "@/constants/sizes&fonts";
-import { ImageObject } from "@/constants/Types";
-import * as ImagePicker from "expo-image-picker";
-import { addDoc } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { Formik } from "formik";
-import { AddCircle } from "iconsax-react-native";
 import React, { useEffect, useState } from "react";
 import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
+  Button,
   Text,
+  Image,
+  ScrollView,
   TouchableOpacity,
-  View
+  StyleSheet,
+  View,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Yup from 'yup';
+import * as ImagePicker from "expo-image-picker";
+import { Colors } from "@/constants/Colors";
+import { sizes } from "@/constants/sizes&fonts";
+import { AddCircle } from "iconsax-react-native";
+import { Formik } from "formik";
+import TextInputComponent from "@/components/textinput";
+import DatePickerComponent from "@/components/datepicker";
+import TextAreaComponent from "@/components/textArea";
+import { addDoc } from "firebase/firestore";
+import { EventRef, storageBucket } from "@/config/firebase";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUserContext } from "@/config/usercontext";
+import { ImageObject } from "@/constants/Types";
+import { useLocalSearchParams } from "expo-router";
 
-export default function Create() {
+export default function Index() {
   const { userEmail, fetchData,getYourEvents } = useUserContext();
+  const { eventName, time, description, eventID,location,date } = useLocalSearchParams();
   useEffect(() => {
     fetchData();
   }, []);
@@ -102,22 +105,9 @@ export default function Create() {
     }
   };
 
-  const eventSchema = Yup.object().shape({
-    eventName: Yup.string().required('Event name is required'),
-    description: Yup.string().required('Description is required'),
-    location: Yup.string().required('Location is required'),
-    date: Yup.date()
-      .required('Date is required')
-      .min(new Date(), 'Date cannot be in the past'),
-    time: Yup.string().required('Time is required'),
-  });
+
 
   const createEvent = async (data) => {
-
-    if (selectedImages.length === 0) {
-      alert("Please select at least one image.");
-      return;
-    }
     setLoading(true);
     try {
       const images = (await uploadImages()) as unknown as ImageObject;
@@ -143,10 +133,9 @@ setSelectedImages([])
     }
   };
 
-
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Create Event</Text>
+      <Text style={styles.title}>Edit Event</Text>
       <ScrollView
         style={{ height: "100%", paddingVertical: sizes.marginSM + 5 }}
         showsVerticalScrollIndicator={false}
@@ -206,13 +195,12 @@ setSelectedImages([])
         </View>
         <Formik
           initialValues={{
-            eventName: "",
-            description: "",
-            date: "",
-            time: "",
-            location: "",
+            eventName: eventName,
+            description: description,
+            date: date,
+            time: time,
+            location: location,
           }}
-          validationSchema={eventSchema}
           onSubmit={async (values, { resetForm }) => {
             await createEvent(values);
             resetForm();

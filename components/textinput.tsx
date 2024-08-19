@@ -38,7 +38,7 @@ export default function TextInputComponent({
       <TextInput
         style={{
           borderWidth: 1,
-          borderColor: errors[id] ? "#F44336" : "transparent",
+          borderColor: errors[id] && touched[id] ? "#F44336" : "transparent",
           fontSize: 16,
           borderRadius: 8,
           color: Colors.light.text,

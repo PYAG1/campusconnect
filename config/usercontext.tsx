@@ -52,7 +52,7 @@ export const UserContextProvider: FC<UserContextProviderProps> = ({ children }) 
         const events = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        })) as EventData[];
+        })) as unknown as EventData[];
         setFilteredEvents(events);
       } else {
         setFilteredEvents([]);
