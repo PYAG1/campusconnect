@@ -20,7 +20,7 @@ import { useUserContext } from "@/config/usercontext";
 import { CoordinateTypes, EventData } from "@/constants/Types";
 import { formatDate } from "@/constants/formatDate";
 import { Ionicons } from "@expo/vector-icons";
-import openMap from 'react-native-open-maps';
+import openMap from "react-native-open-maps";
 import {
   deleteDoc,
   doc,
@@ -33,9 +33,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import MapView, { Marker } from "react-native-maps";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { deleteObject, ref } from "firebase/storage";
+import { MotiView } from "moti";
+import { Skeleton } from "moti/skeleton";
 
 export default function Index() {
-  const { eventName, time, description, eventID,location, date} = useLocalSearchParams();
+  const { eventName, time, description, eventID, date } =
+    useLocalSearchParams();
   const [event, setEvent] = useState<DocumentData | EventData>();
   const refRBSheet = useRef<any>();
   const [isVisible, setIsVisible] = useState(false);
@@ -83,24 +86,24 @@ export default function Index() {
       setActive(slide);
     }
   }
-const EditEvent=()=>{
-  router.navigate({
-    pathname: "/editEvent",
-    params: {
-      eventID:eventID,
-      eventName: eventName,
-      description: description, 
-      location:location,
-      time: time,
-      date:date
-    },
-  })
-}
+  const EditEvent = () => {
+    router.navigate({
+      pathname: "/editEvent",
+      params: {
+        eventID: eventID,
+        eventName: eventName,
+        description: description,
+        location: JSON.stringify(event?.location),
+        time: time,
+        date: date,
+      },
+    });
+  };
   const options = [
     {
       name: "Edit Event",
       icon: <Edit size="28" color={Colors.light.blue} variant="Bulk" />,
-      action: EditEvent              
+      action: EditEvent,
     },
     {
       name: "Delete Event",
@@ -114,7 +117,7 @@ const EditEvent=()=>{
     },
   ];
 
-  const { loading, setLoading,getYourEvents } = useUserContext();
+  const { setLoading, getYourEvents } = useUserContext();
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
@@ -123,7 +126,7 @@ const EditEvent=()=>{
     longitudeDelta: 0.0421,
   });
   const [mapLoaded, setMapLoaded] = useState(false);
-  
+
   const fetchEvent = async () => {
     setLoading(true);
     try {
@@ -137,9 +140,12 @@ const EditEvent=()=>{
 
       if (!querySnapshot.empty) {
         const eventData = querySnapshot.docs[0].data();
-        setEvent(eventData); 
-        console.log("fetched",eventData.location)
-        if (eventData.location.MapDetails.lat && eventData.location.MapDetails.lng) {
+        setEvent(eventData);
+        console.log("fetched", eventData.location);
+        if (
+          eventData.location.MapDetails.lat &&
+          eventData.location.MapDetails.lng
+        ) {
           setMapRegion({
             latitude: eventData.location.MapDetails.lat,
             longitude: eventData.location.MapDetails.lng,
@@ -169,10 +175,9 @@ const EditEvent=()=>{
       });
       setMapLoaded(true);
     }
-
   }, []);
 
-console.log("data",event?.location)
+  console.log("data", event?.location);
 
   const deleteEvent = async (eventID: number) => {
     setIsDeleting(true);
@@ -220,20 +225,18 @@ console.log("data",event?.location)
       console.error("Error deleting event and images:", error);
     } finally {
       setIsDeleting(false);
-      await getYourEvents()
-      router.navigate("/(tabs)")
-      
+      await getYourEvents();
+      router.navigate("/(tabs)");
     }
   };
 
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={{ height:"100%" }}>
+      <SafeAreaView style={{ height: "100%" }}>
         <Button title="Back" onPress={() => router.back()}></Button>
         <ScrollView
           style={{
-          //  marginVertical: sizes.marginSM,
+            //  marginVertical: sizes.marginSM,
             paddingHorizontal: sizes.marginSM,
           }}
           showsVerticalScrollIndicator={false}
@@ -296,37 +299,49 @@ console.log("data",event?.location)
 
             <Text style={{ fontSize: sizes.fontSize[3] }}>Location</Text>
             <Divider style={{ backgroundColor: Colors.light.tint }} />
-            <Text style={{ fontSize: sizes.fontSize[5] }}>{event?.location?.description}</Text>
-            <View
-              style={{
-                width: "100%",
-                height: 200,
-                borderRadius: 20,
-                marginBottom: sizes.marginSM,
-              }}
-            >
+
             {mapLoaded ? (
-<Pressable onPress={()=>{
-  openMap({latitude:event?.location.MapDetails.lat,longitude:event?.location.MapDetails.lng})
-}}>
-<MapView
-    style={{ width: "100%", height: "100%", borderRadius: 20 }}
-    region={mapRegion}
-  >
-    <Marker
-      coordinate={{
-        latitude: event?.location.MapDetails.lat,
-        longitude: event?.location.MapDetails.lng,
-      }}
-    />
-  </MapView>
-</Pressable>
-) : (
-  <View style={{ width: "100%", height: "100%", justifyContent: 'center', alignItems: 'center' }}>
-    <Text>Loading map...</Text>
-  </View>
-)}
-            </View>
+              <View style={{ flexDirection: "column", gap: sizes.marginSM }}>
+                <Text style={{ fontSize: sizes.fontSize[5] }}>
+                  {event?.location?.description}
+                </Text>
+                <View
+                  style={{
+                    width: "100%",
+                    height: 200,
+                    borderRadius: 20,
+                    marginBottom: sizes.marginSM,
+                  }}
+                >
+                  <Pressable
+                    onPress={() => {
+                      openMap({
+                        latitude: event?.location.MapDetails.lat,
+                        longitude: event?.location.MapDetails.lng,
+                      });
+                    }}
+                  >
+                    <MapView
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: 20,
+                      }}
+                      region={mapRegion}
+                    >
+                      <Marker
+                        coordinate={{
+                          latitude: event?.location.MapDetails.lat,
+                          longitude: event?.location.MapDetails.lng,
+                        }}
+                      />
+                    </MapView>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <SkeletonLoader />
+            )}
           </View>
         </ScrollView>
         <RBSheet
@@ -459,3 +474,23 @@ console.log("data",event?.location)
     </GestureHandlerRootView>
   );
 }
+
+const SkeletonLoader = () => (
+  <MotiView
+    transition={{ type: "timing" }}
+    style={{
+      flex: 1,
+      width: "100%",
+      justifyContent: "center",
+      backgroundColor: "transparent",
+      flexDirection: "column",
+      gap: 10,
+      marginTop: sizes.marginSM + 5,
+    }}
+    animate={{ backgroundColor: "transparent" }}
+  >
+    <Skeleton colorMode={"light"} width={"100%"} height={20} />
+
+    <Skeleton colorMode={"light"} radius={20} height={300} width={"100%"} />
+  </MotiView>
+);

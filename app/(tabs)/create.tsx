@@ -13,6 +13,8 @@ import { addDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { Formik } from "formik";
 import { AddCircle, Map1, Trash } from "iconsax-react-native";
+import { MotiView } from "moti";
+import { Skeleton } from "moti/skeleton";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
@@ -22,6 +24,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -115,7 +118,7 @@ export default function Create() {
   const eventSchema = Yup.object().shape({
     eventName: Yup.string().required("Event name is required"),
     description: Yup.string().required("Description is required"),
-    location: Yup.object().required("Location is required").nullable(),
+    //location: Yup.object().required("Location is required").nullable(),
     date: Yup.date()
       .required("Date is required")
       .min(new Date(), "Date cannot be in the past"),
@@ -168,6 +171,7 @@ export default function Create() {
     MapDetails:Point | undefined
   }
   const [location, setLocation] = useState< MapData | undefined>();
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Create Event</Text>
@@ -239,11 +243,10 @@ export default function Create() {
               description: "",
               date: "",
               time: "",
-              location: null,
+              location: undefined,
             }}
             validationSchema={eventSchema}
             onSubmit={async (values, { resetForm ,setFieldValue}) => {
-
               setFieldValue("location", location)
               console.log("new",values);
               await createEvent(values);
@@ -289,56 +292,54 @@ export default function Create() {
                   touched={touched}
                 />
 
-                <View
-                  style={{
-                    flexDirection: "column",
-                    gap: 12,
-                    width: "100%",
-                    position: "relative",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: sizes.fontSize[3],
-                      color: Colors.light.text,
-                    }}
-                  >
-                    Location
-                  </Text>
+<View
+  style={{
+    flexDirection: "column",
+    gap: 12,
+    width: "100%",
+    position: "relative",
+  }}
+>
+  <Text
+    style={{
+      fontSize: sizes.fontSize[3],
+      color: Colors.light.text,
+    }}
+  >
+    Location
+  </Text>
+  <View style={{ position: "relative" }}>
+    <TextInput
+      readOnly
+      placeholder="Select and event"
+      value={location?.description}
+      style={{
+        borderWidth: 1,
+        borderColor: errors['location'] && touched['location'] ? "#F44336" : "transparent",
+        fontSize: 16,
+        borderRadius: 8,
+        color: Colors.light.text,
+        paddingVertical: 11,
+        paddingHorizontal: 16,
+        backgroundColor: Colors.light.tint2,
+        paddingRight: 50,
+      }}
+    />
+    <Pressable
+      onPress={openBottomSheet}
+      style={{
+        position: "absolute",
+        right: 15,
+        top: "50%",
+        transform: [{ translateY: -12.5 }],
+      }}
+    >
+      <Map1 size="25" color={Colors.light.button} />
+    </Pressable>
+  </View>
 
-                  <Pressable
-                    onPress={openBottomSheet}
-                    style={{
-                      flex: 1,
-                      borderWidth: 1,
-                      borderColor: "#ccc",
-                      // fontSize: 16,
-                      borderRadius: 8,
-                      //color: Colors.light.text,
-                      flexDirection: "row",
-                      justifyContent: "space-between",
+</View>
 
-                      paddingVertical: 10,
-                      paddingHorizontal: 16,
-                      backgroundColor: Colors.light.tint2,
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: "90%",
-                        
-                        overflow: "hidden",
-                      }}
-                    >
-                      <Text>
-                { location !== undefined ? location.description : "Select location"}
-                      </Text>
-                    </View>
-                    <Text style={{}}>
-                      <Map1 size="25" color={Colors.light.button} />
-                    </Text>
-                  </Pressable>
-                </View>
 
                 <DatePickerComponent
                   values={values}
@@ -542,3 +543,4 @@ const styles = StyleSheet.create({
     color: "black",
   },
 });
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Text,
@@ -8,33 +8,64 @@ import {
   StyleSheet,
   View,
   Pressable,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Colors } from "@/constants/Colors";
 import { sizes } from "@/constants/sizes&fonts";
-import { AddCircle } from "iconsax-react-native";
-import { Formik } from "formik";
+import { AddCircle, Map1 } from "iconsax-react-native";
+import { Formik, useFormikContext } from "formik";
 import TextInputComponent from "@/components/textinput";
 import DatePickerComponent from "@/components/datepicker";
 import TextAreaComponent from "@/components/textArea";
-import { addDoc } from "firebase/firestore";
+import { addDoc, getDocs, query, where } from "firebase/firestore";
 import { EventRef, storageBucket } from "@/config/firebase";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUserContext } from "@/config/usercontext";
-import { ImageObject } from "@/constants/Types";
+import { ImageObject, MapData } from "@/constants/Types";
 import { useLocalSearchParams } from "expo-router";
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
+import { Ionicons } from "@expo/vector-icons";
+import RBSheet from "react-native-raw-bottom-sheet";
 
 export default function Index() {
-  const { userEmail, fetchData,getYourEvents } = useUserContext();
-  const { eventName, time, description, eventID,location,date } = useLocalSearchParams();
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const { userEmail, fetchData, getYourEvents } = useUserContext();
+  const { eventName, time, description, eventID, date, location } =
+    useLocalSearchParams();
+  const refRBSheet = useRef<any>();
+  const [isVisible, setIsVisible] = useState(false);
   const [selectedImages, setSelectedImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  
 
+  const [editedLocation, setEditedLocation] = useState<MapData | undefined>(undefined);
+
+  useEffect(() => {
+    const parseLocation = () => {
+      try {
+        const parsedLocation = location ? JSON.parse(location as string) : undefined;
+        setEditedLocation(parsedLocation);
+      } catch (error) {
+        console.error("Failed to parse location JSON:", error);
+      }
+    };
+  
+    parseLocation();
+  }, [location]);
+  
+
+  const openBottomSheet = () => {
+    setIsVisible(true);
+    refRBSheet.current.open();
+  };
+
+  const closeBottomSheet = () => {
+    setIsVisible(false);
+    refRBSheet.current.close();
+  };
   const pickImageAsync = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
@@ -104,11 +135,9 @@ export default function Index() {
       console.error("Error uploading images:", error);
     }
   };
-
-
-
+const [isSubmitting,setisSubmitting]= useState(false)
   const createEvent = async (data) => {
-    setLoading(true);
+    setisSubmitting(true);
     try {
       const images = (await uploadImages()) as unknown as ImageObject;
       if (images) {
@@ -122,20 +151,25 @@ export default function Index() {
           eventID: Math.ceil(Math.random() * 1000000000),
         });
       }
-setSelectedImages([])
+      setSelectedImages([]);
       console.log("Event created successfully");
     } catch (error) {
       console.error("Error creating event:", error);
     } finally {
-      setLoading(false);
-  await    getYourEvents()
-      
+      setisSubmitting(false);
+      await getYourEvents();
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Edit Event</Text>
+      {loading ? (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color={Colors.light.button} />
+      </View>
+    ) : (
+      <>
       <ScrollView
         style={{ height: "100%", paddingVertical: sizes.marginSM + 5 }}
         showsVerticalScrollIndicator={false}
@@ -199,7 +233,10 @@ setSelectedImages([])
             description: description,
             date: date,
             time: time,
-            location: location,
+            location: editedLocation || {
+              description: "",
+              MapDetails: undefined,
+            },
           }}
           onSubmit={async (values, { resetForm }) => {
             await createEvent(values);
@@ -213,7 +250,6 @@ setSelectedImages([])
             errors,
             values,
             touched,
-            setFieldValue,
           }) => (
             <View
               style={{
@@ -243,16 +279,56 @@ setSelectedImages([])
                 errors={errors}
                 touched={touched}
               />
-              <TextInputComponent
-                label={"Location"}
-                placeholder="Location"
-                values={values}
-                handleChange={handleChange}
-                handleBlur={handleBlur}
-                id={"location"}
-                errors={errors}
-                touched={touched}
-              />
+
+              <View
+                style={{
+                  flexDirection: "column",
+                  gap: 12,
+                  width: "100%",
+                  position: "relative",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: sizes.fontSize[3],
+                    color: Colors.light.text,
+                  }}
+                >
+                  Location
+                </Text>
+                <View style={{ position: "relative" }}>
+                  <TextInput
+                    readOnly
+                    placeholder="Select and event"
+                    value={editedLocation?.description}
+                    style={{
+                      borderWidth: 1,
+                      borderColor:
+                        errors["location"] && touched["location"]
+                          ? "#F44336"
+                          : "transparent",
+                      fontSize: 16,
+                      borderRadius: 8,
+                      color: Colors.light.text,
+                      paddingVertical: 11,
+                      paddingHorizontal: 16,
+                      backgroundColor: Colors.light.tint2,
+                      paddingRight: 50,
+                    }}
+                  />
+                  <Pressable
+                    onPress={openBottomSheet}
+                    style={{
+                      position: "absolute",
+                      right: 15,
+                      top: "50%",
+                      transform: [{ translateY: -12.5 }],
+                    }}
+                  >
+                    <Map1 size="25" color={Colors.light.button} />
+                  </Pressable>
+                </View>
+              </View>
               <DatePickerComponent
                 values={values}
                 label={"Date"}
@@ -284,13 +360,120 @@ setSelectedImages([])
                 }}
               >
                 <Text style={{ color: "white" }}>
-                  {loading ? "Loading..." : "Submit"}
+                  {isSubmitting ? "Loading..." : "Submit"}
                 </Text>
               </Pressable>
             </View>
           )}
         </Formik>
       </ScrollView>
+      <RBSheet
+        ref={refRBSheet}
+        useNativeDriver={false}
+        customStyles={{
+          container: {
+            backgroundColor: "transparent",
+
+            height: sizes.screenHeight - 100,
+          },
+          wrapper: {
+            backgroundColor: "rgba(0,0,0,0.5)",
+          },
+          draggableIcon: {
+            backgroundColor: "#000",
+          },
+        }}
+        customModalProps={{
+          animationType: "slide",
+          statusBarTranslucent: true,
+        }}
+        customAvoidingViewProps={{
+          enabled: false,
+        }}
+      >
+        <View
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: Colors.light.background,
+            borderRadius: 30,
+            paddingHorizontal: sizes.marginSM,
+            paddingVertical: sizes.marginSM + 5,
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                width: 50,
+                height: 50,
+                backgroundColor: Colors.light.tint2,
+                borderRadius: 100,
+                justifyContent: "center",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Map1 size="28" color={Colors.light.blue} variant="Bulk" />
+            </View>
+            <Pressable onPress={closeBottomSheet}>
+              <Ionicons name="close-outline" size={24} color="black" />
+            </Pressable>
+          </View>
+          <View>
+            <Text style={{ fontSize: sizes.fontSize[5] + 2, marginBottom: 8 }}>
+              Add a location to your event
+            </Text>
+            <Text style={{ color: Colors.light.tint }}>
+              Choose where your location will be hosted
+            </Text>
+          </View>
+
+          <GooglePlacesAutocomplete
+            placeholder="Search Location"
+            onPress={(data, details = null) => {
+              console.log("data", JSON.stringify(data));
+              console.log(
+                "details",
+                JSON.stringify(details?.geometry?.location)
+              );
+              setEditedLocation({
+                description: data.description,
+                MapDetails: details?.geometry?.location,
+              });
+            }}
+            query={{
+              key: `${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`,
+              language: "en",
+            }}
+            textInputProps={{
+              style: {
+                borderWidth: 1,
+                borderColor: "transparent",
+                fontSize: 16,
+                borderRadius: 8,
+                color: Colors.light.text,
+                paddingVertical: 11,
+                paddingHorizontal: 16,
+                backgroundColor: Colors.light.tint2,
+                width: "100%",
+              },
+            }}
+            fetchDetails={true}
+            onFail={(error) => console.error(error)}
+            onNotFound={() => console.log("no results")}
+          />
+        </View>
+      </RBSheet>
+      </>)}
     </SafeAreaView>
   );
 }
@@ -346,5 +529,11 @@ const styles = StyleSheet.create({
   },
   noImageText: {
     color: "black",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.light.background, // or any background color
   },
 });

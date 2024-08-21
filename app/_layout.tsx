@@ -42,10 +42,12 @@ export default function RootLayout() {
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="signup" />
+    
           <Stack.Screen name="editEvent/index" />
+  
           <Stack.Screen
             options={{
-              presentation: "formSheet",
+              presentation: "modal",
             }}
             name="profile/index"
           />
