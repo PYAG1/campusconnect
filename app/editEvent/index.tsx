@@ -1,35 +1,33 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  Button,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  View,
-  Pressable,
-  TextInput,
-  ActivityIndicator,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import * as ImagePicker from "expo-image-picker";
-import { Colors } from "@/constants/Colors";
-import { sizes } from "@/constants/sizes&fonts";
-import { AddCircle, Map1 } from "iconsax-react-native";
-import { Formik, useFormikContext } from "formik";
-import TextInputComponent from "@/components/textinput";
 import DatePickerComponent from "@/components/datepicker";
 import TextAreaComponent from "@/components/textArea";
-import { addDoc, getDocs, query, where } from "firebase/firestore";
+import TextInputComponent from "@/components/textinput";
 import { EventRef, storageBucket } from "@/config/firebase";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUserContext } from "@/config/usercontext";
+import { Colors } from "@/constants/Colors";
+import { sizes } from "@/constants/sizes&fonts";
 import { ImageObject, MapData } from "@/constants/Types";
-import { useLocalSearchParams } from "expo-router";
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { useLocalSearchParams } from "expo-router";
+import { addDoc } from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { Formik } from "formik";
+import { AddCircle, Map1 } from "iconsax-react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from "react-native";
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import RBSheet from "react-native-raw-bottom-sheet";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
   const { userEmail, fetchData, getYourEvents } = useUserContext();
