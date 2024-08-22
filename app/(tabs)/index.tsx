@@ -18,6 +18,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
@@ -26,6 +27,15 @@ export default function HomeScreen() {
 
   useEffect(() => {
     getYourEvents();
+    Toast.show({
+      type:"customSuccessToast",
+      text1:"Welcome to CampusConnect",
+      position: "top", 
+      visibilityTime: 3000, 
+      text1Style:{
+        fontSize:sizes.fontSize[5]
+      }
+    })
   }, []);
 
   const handleRefresh = async () => {

@@ -118,7 +118,7 @@ export default function Create() {
   const eventSchema = Yup.object().shape({
     eventName: Yup.string().required("Event name is required"),
     description: Yup.string().required("Description is required"),
-    //location: Yup.object().required("Location is required").nullable(),
+    location: Yup.object().required("Location is required").nullable(),
     date: Yup.date()
       .required("Date is required")
       .min(new Date(), "Date cannot be in the past"),
@@ -167,10 +167,10 @@ export default function Create() {
     refRBSheet.current.close();
   };
   interface MapData {
-    description:string;
-    MapDetails:Point | undefined
+    description: string;
+    MapDetails: Point | undefined;
   }
-  const [location, setLocation] = useState< MapData | undefined>();
+  const [location, setLocation] = useState<MapData | undefined>();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -243,15 +243,24 @@ export default function Create() {
               description: "",
               date: "",
               time: "",
-              location: undefined,
+              location: undefined || {
+                description: "",
+                MapDetails: undefined,
+              },
             }}
             validationSchema={eventSchema}
-            onSubmit={async (values, { resetForm ,setFieldValue}) => {
-              setFieldValue("location", location)
-              console.log("new",values);
+            onSubmit={async (values, { resetForm }) => {
+              if (!location) {
+                alert("Please select a location.");
+                return;
+              }
+
+              values.location = location;
+              console.log("new", values);
               await createEvent(values);
-             resetForm();
-              setLocation(undefined)
+              setSelectedImages([]);
+              resetForm();
+              //  setLocation(undefined)
             }}
           >
             {({
@@ -292,54 +301,55 @@ export default function Create() {
                   touched={touched}
                 />
 
-<View
-  style={{
-    flexDirection: "column",
-    gap: 12,
-    width: "100%",
-    position: "relative",
-  }}
->
-  <Text
-    style={{
-      fontSize: sizes.fontSize[3],
-      color: Colors.light.text,
-    }}
-  >
-    Location
-  </Text>
-  <View style={{ position: "relative" }}>
-    <TextInput
-      readOnly
-      placeholder="Select and event"
-      value={location?.description}
-      style={{
-        borderWidth: 1,
-        borderColor: errors['location'] && touched['location'] ? "#F44336" : "transparent",
-        fontSize: 16,
-        borderRadius: 8,
-        color: Colors.light.text,
-        paddingVertical: 11,
-        paddingHorizontal: 16,
-        backgroundColor: Colors.light.tint2,
-        paddingRight: 50,
-      }}
-    />
-    <Pressable
-      onPress={openBottomSheet}
-      style={{
-        position: "absolute",
-        right: 15,
-        top: "50%",
-        transform: [{ translateY: -12.5 }],
-      }}
-    >
-      <Map1 size="25" color={Colors.light.button} />
-    </Pressable>
-  </View>
-
-</View>
-
+                <View
+                  style={{
+                    flexDirection: "column",
+                    gap: 12,
+                    width: "100%",
+                    position: "relative",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: sizes.fontSize[3],
+                      color: Colors.light.text,
+                    }}
+                  >
+                    Location
+                  </Text>
+                  <View style={{ position: "relative" }}>
+                    <TextInput
+                      readOnly
+                      placeholder="Select and event"
+                      value={location?.description}
+                      style={{
+                        borderWidth: 1,
+                        borderColor:
+                          errors["location"] && touched["location"]
+                            ? "#F44336"
+                            : "transparent",
+                        fontSize: 16,
+                        borderRadius: 8,
+                        color: Colors.light.text,
+                        paddingVertical: 11,
+                        paddingHorizontal: 16,
+                        backgroundColor: Colors.light.tint2,
+                        paddingRight: 50,
+                      }}
+                    />
+                    <Pressable
+                      onPress={openBottomSheet}
+                      style={{
+                        position: "absolute",
+                        right: 15,
+                        top: "50%",
+                        transform: [{ translateY: -12.5 }],
+                      }}
+                    >
+                      <Map1 size="25" color={Colors.light.button} />
+                    </Pressable>
+                  </View>
+                </View>
 
                 <DatePickerComponent
                   values={values}
@@ -361,7 +371,7 @@ export default function Create() {
                   errors={errors}
                 />
                 <Pressable
-                  onPress={handleSubmit}
+                  onPress={() => handleSubmit()}
                   style={{
                     width: "100%",
                     flexDirection: "row",
@@ -454,14 +464,16 @@ export default function Create() {
           <GooglePlacesAutocomplete
             placeholder="Search Location"
             onPress={(data, details = null) => {
-              console.log("data",JSON.stringify(data));
-              console.log("details",JSON.stringify(details?.geometry?.location));
-     
+              console.log("data", JSON.stringify(data));
+              console.log(
+                "details",
+                JSON.stringify(details?.geometry?.location)
+              );
+
               setLocation({
-                description:data.description,
-                MapDetails:details?.geometry?.location
+                description: data.description,
+                MapDetails: details?.geometry?.location,
               });
-        
             }}
             query={{
               key: `${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`,
@@ -543,4 +555,3 @@ const styles = StyleSheet.create({
     color: "black",
   },
 });
-

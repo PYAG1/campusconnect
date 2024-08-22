@@ -74,7 +74,7 @@ export default function DatePickerComponent({
           style={{
             flex: 1,
             borderWidth: 1,
-            borderColor: errors[id] ? '#F44336' : '#ccc',
+            borderColor: errors[id] && touched[id] ? '#F44336' : '#ccc',
             fontSize: 16,
             borderRadius: 8,
             color: Colors.light.text,
