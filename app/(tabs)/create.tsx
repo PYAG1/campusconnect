@@ -1,3 +1,4 @@
+import SelectComponent from "@/components/core-ui/SelectInput";
 import DatePickerComponent from "@/components/datepicker";
 import GooglePlacesInput from "@/components/MapsInput";
 import TextAreaComponent from "@/components/textArea";
@@ -6,13 +7,13 @@ import { EventRef, storageBucket } from "@/config/firebase";
 import { useUserContext } from "@/config/usercontext";
 import { Colors } from "@/constants/Colors";
 import { sizes } from "@/constants/sizes&fonts";
-import { ImageObject } from "@/constants/Types";
+import { ImageObject, MapData } from "@/constants/Types";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { addDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { Formik } from "formik";
-import { AddCircle, Map1, Trash } from "iconsax-react-native";
+import { AddCircle, Category, Map1, Trash } from "iconsax-react-native";
 import { MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
 import React, { useEffect, useRef, useState } from "react";
@@ -123,6 +124,7 @@ export default function Create() {
       .required("Date is required")
       .min(new Date(), "Date cannot be in the past"),
     time: Yup.string().required("Time is required"),
+    category:Yup.string().required("Category is required"),
   });
 
   const createEvent = async (data) => {
@@ -166,12 +168,19 @@ export default function Create() {
     setIsVisible(false);
     refRBSheet.current.close();
   };
-  interface MapData {
-    description: string;
-    MapDetails: Point | undefined;
-  }
-  const [location, setLocation] = useState<MapData | undefined>();
 
+  const [location, setLocation] = useState<MapData | undefined>();
+  const campusEventCategories = [
+    { key: 1, value: "Academic Events" },
+    { key: 2, value: "Cultural Events" },
+    { key: 3, value: "Social Events" },
+    { key: 4, value: "Sports & Recreation" },
+    { key: 5, value: "Career Events" },
+    { key: 7, value: "Health & Wellness" },
+    { key: 8, value: "Religious" },
+
+  ];
+  
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Create Event</Text>
@@ -243,6 +252,7 @@ export default function Create() {
               description: "",
               date: "",
               time: "",
+              category:"",
               location: undefined || {
                 description: "",
                 MapDetails: undefined,
@@ -260,7 +270,7 @@ export default function Create() {
               await createEvent(values);
               setSelectedImages([]);
               resetForm();
-              //  setLocation(undefined)
+             setLocation(undefined)
             }}
           >
             {({
@@ -299,6 +309,16 @@ export default function Create() {
                   id={"description"}
                   errors={errors}
                   touched={touched}
+                />
+          <SelectComponent
+                  label={"Event Category"}
+                  values={values}
+                  handleChange={handleChange}
+           
+                  id={"category"}
+                  touched={touched}
+                  data={campusEventCategories}
+                  errors={errors}
                 />
 
                 <View
@@ -360,7 +380,7 @@ export default function Create() {
                   Datemode={"date"}
                   errors={errors}
                 />
-
+        
                 <DatePickerComponent
                   values={values}
                   label={"Time"}
@@ -474,6 +494,7 @@ export default function Create() {
                 description: data.description,
                 MapDetails: details?.geometry?.location,
               });
+              closeBottomSheet()
             }}
             query={{
               key: `${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`,

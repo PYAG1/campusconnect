@@ -15,7 +15,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -28,14 +28,14 @@ export default function HomeScreen() {
   useEffect(() => {
     getYourEvents();
     Toast.show({
-      type:"customSuccessToast",
-      text1:"Welcome to CampusConnect",
-      position: "top", 
-      visibilityTime: 3000, 
-      text1Style:{
-        fontSize:sizes.fontSize[5]
-      }
-    })
+      type: "customSuccessToast",
+      text1: "Welcome to CampusConnect",
+      position: "top",
+      visibilityTime: 3000,
+      text1Style: {
+        fontSize: sizes.fontSize[5],
+      },
+    });
   }, []);
 
   const handleRefresh = async () => {
@@ -97,7 +97,9 @@ export default function HomeScreen() {
               <SkeletonLoader />
               <SkeletonLoader />
             </>
-          ) : filteredEvents.length ||  filteredEvents.filter((item) => item.isVerified === true).length === 0 ? (
+          ) : filteredEvents.length ||
+            filteredEvents.filter((item) => item.isVerified === true).length ===
+              0 ? (
             <View style={styles.eventContainer}>
               <View style={styles.noEventsBox}>
                 <Ionicons name="ticket-outline" size={35} color="#bababa" />
@@ -110,47 +112,48 @@ export default function HomeScreen() {
               </View>
             </View>
           ) : (
-            filteredEvents.filter((item) => item.isVerified === true)
-            .map((item: EventData, index: number) => (
-              <Pressable
-                key={index}
-                onPress={() =>
-                  router.push({
-                    pathname: "/eventDetails",
-                    params: {
-                      eventID: item.eventID,
-                      eventName: item.eventName,
-                      date: item.date,
-                      description: item.description,
-                   
-                      isVerified: item.isVerified as string,
-                      location: item.location,
-                      time: item.time,
-                    },
-                  })
-                }
-                style={styles.eventContainer}
-              >
-                <Image
-                  source={{ uri: item.images[0].downloadURL}}
-                  style={styles.eventImage}
-                  resizeMode="cover"
-                />
-                <View style={styles.eventDetails}>
-                  <Text style={styles.eventName}>{item.eventName}</Text>
-                  <View style={styles.infoContainer}>
-                    <Text style={styles.infoText}>
-                      <Fontisto name="date" size={18} color="black" />{" "}
-                      {new Date(item.date).toLocaleDateString("en-GB")}
-                    </Text>
-                    <Text style={styles.infoText}>
-                      <EvilIcons name="location" size={24} color="black" />{" "}
-                      {item.location}
-                    </Text>
+            filteredEvents
+              .filter((item) => item.isVerified === true)
+              .map((item: EventData, index: number) => (
+                <Pressable
+                  key={index}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/eventDetails",
+                      params: {
+                        eventID: item.eventID,
+                        eventName: item.eventName,
+                        date: item.date,
+                        description: item.description,
+
+                        isVerified: item.isVerified as string,
+
+                        time: item.time,
+                      },
+                    })
+                  }
+                  style={styles.eventContainer}
+                >
+                  <Image
+                    source={{ uri: item.images[0].downloadURL }}
+                    style={styles.eventImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.eventDetails}>
+                    <Text style={styles.eventName}>{item.eventName}</Text>
+                    <View style={styles.infoContainer}>
+                      <Text style={styles.infoText}>
+                        <Fontisto name="date" size={18} color="black" />{" "}
+                        {new Date(item.date).toLocaleDateString("en-GB")}
+                      </Text>
+                      <Text style={styles.infoText}>
+                        <EvilIcons name="location" size={24} color="black" />{" "}
+                        {item.location.description}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </Pressable>
-            ))
+                </Pressable>
+              ))
           )}
         </View>
         <Text style={styles.title}>Pending</Text>
@@ -194,7 +197,8 @@ export default function HomeScreen() {
                         date: item.date,
                         description: item.description,
                         isVerified: item.isVerified as string,
-                        location: item.location,
+                    
+  
                         time: item.time,
                       },
                     })
@@ -202,7 +206,7 @@ export default function HomeScreen() {
                   style={styles.eventContainer}
                 >
                   <Image
-                    source={{ uri:item.images[0].downloadURL }}
+                    source={{ uri: item.images[0].downloadURL }}
                     style={styles.eventImage}
                     resizeMode="cover"
                   />
@@ -330,4 +334,3 @@ const styles = StyleSheet.create({
 });
 
 const Spacer = ({ height = 16 }) => <View style={{ height }} />;
-

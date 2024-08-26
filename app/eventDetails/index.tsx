@@ -11,13 +11,15 @@ import {
   Share,
   Text,
   View,
+  Image,
+  StyleSheet,
 } from "react-native";
 import { Divider } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EventRef, storageBucket } from "@/config/firebase";
 import { useUserContext } from "@/config/usercontext";
-import { CoordinateTypes, EventData } from "@/constants/Types";
+import { CoordinateTypes, EventData, ImageObject } from "@/constants/Types";
 import { formatDate } from "@/constants/formatDate";
 import { Ionicons } from "@expo/vector-icons";
 import openMap from "react-native-open-maps";
@@ -233,33 +235,53 @@ export default function Index() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={{ height: "100%" }}>
-        <Button title="Back" onPress={() => router.back()}></Button>
         <ScrollView
-          style={{
-            //  marginVertical: sizes.marginSM,
-            paddingHorizontal: sizes.marginSM,
-          }}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: sizes.marginSM }}
         >
-          <View
-            style={{
-              width: "100%",
-              height: sizes.screenHeight / 3,
-              backgroundColor: "black",
-              borderRadius: 20,
-              marginBottom: sizes.marginSM,
-            }}
-          ></View>
-
           <ScrollView
             pagingEnabled
             horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ width: sizes.screenWidth }}
             onScroll={changeImage}
-          ></ScrollView>
-          <View style={{ flexDirection: "column", gap: 15 }}>
+            showsHorizontalScrollIndicator={false}
+            style={{ width: sizes.screenWidth, height: sizes.screenHeight / 3 }} // Adjusted height to match children
+          >
+            {mapLoaded ? (
+              event.images.map((item: ImageObject, index: number) => {
+                return (
+                  <View
+                    key={index}
+                    style={{
+                      width: sizes.screenWidth, // Set width to match the ScrollView
+                      height: "100%", // Make it full height of the ScrollView
+
+                      marginBottom: sizes.marginSM,
+                    }}
+                  >
+                    <Image
+                      source={{ uri: item.downloadURL }}
+                      style={{
+                        width: sizes.screenWidth,
+                        height: "100%",
+                        resizeMode: "cover",
+                      }}
+                    />
+                  </View>
+                );
+              })
+            ) : (
+              <ImageSkeletonLoader />
+            )}
+          </ScrollView>
+
+          <View
+            style={{
+              flexDirection: "column",
+              gap: 15,
+              paddingHorizontal: sizes.marginSM,
+              marginTop: sizes.marginSM,
+            }}
+          >
             <Text
               style={{
                 color: Colors.light.button,
@@ -491,6 +513,21 @@ const SkeletonLoader = () => (
   >
     <Skeleton colorMode={"light"} width={"100%"} height={20} />
 
+    <Skeleton colorMode={"light"} radius={20} height={300} width={"100%"} />
+  </MotiView>
+);
+
+const ImageSkeletonLoader = () => (
+  <MotiView
+    transition={{ type: "timing" }}
+    style={{
+      flex: 1,
+      width: "100%",
+      justifyContent: "center",
+      backgroundColor: "transparent",
+    }}
+    animate={{ backgroundColor: "transparent" }}
+  >
     <Skeleton colorMode={"light"} radius={20} height={300} width={"100%"} />
   </MotiView>
 );
