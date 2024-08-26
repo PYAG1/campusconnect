@@ -10,6 +10,7 @@ export interface EventData {
   images: ImageObject[] ;
   isVerified: boolean | string;
   location:MapData;
+  category?:string,
   time: string;
 }
 export interface ImageObject {

@@ -5,6 +5,7 @@ import { sizes } from "@/constants/sizes&fonts";
 import { EventData } from "@/constants/Types";
 import { EvilIcons, Fontisto, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { Category } from "iconsax-react-native";
 import { MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
 import React, { useEffect, useState } from "react";
@@ -125,9 +126,8 @@ export default function HomeScreen() {
                         eventName: item.eventName,
                         date: item.date,
                         description: item.description,
-
+                        category:item.category,
                         isVerified: item.isVerified as string,
-
                         time: item.time,
                       },
                     })
@@ -196,9 +196,8 @@ export default function HomeScreen() {
                         eventName: item.eventName,
                         date: item.date,
                         description: item.description,
-                        isVerified: item.isVerified as string,
-                    
-  
+                        isVerified: item.isVerified as string,  
+                        category:item.category,
                         time: item.time,
                       },
                     })

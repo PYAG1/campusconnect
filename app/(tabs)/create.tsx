@@ -6,6 +6,7 @@ import TextInputComponent from "@/components/textinput";
 import { EventRef, storageBucket } from "@/config/firebase";
 import { useUserContext } from "@/config/usercontext";
 import { Colors } from "@/constants/Colors";
+import { campusEventCategories } from "@/constants/EventData";
 import { sizes } from "@/constants/sizes&fonts";
 import { ImageObject, MapData } from "@/constants/Types";
 import { Ionicons } from "@expo/vector-icons";
@@ -170,16 +171,7 @@ export default function Create() {
   };
 
   const [location, setLocation] = useState<MapData | undefined>();
-  const campusEventCategories = [
-    { key: 1, value: "Academic Events" },
-    { key: 2, value: "Cultural Events" },
-    { key: 3, value: "Social Events" },
-    { key: 4, value: "Sports & Recreation" },
-    { key: 5, value: "Career Events" },
-    { key: 7, value: "Health & Wellness" },
-    { key: 8, value: "Religious" },
 
-  ];
   
   return (
     <SafeAreaView style={styles.container}>

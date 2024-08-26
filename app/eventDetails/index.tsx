@@ -1,8 +1,11 @@
 import { Colors } from "@/constants/Colors";
 import { sizes } from "@/constants/sizes&fonts";
 import { router, useLocalSearchParams } from "expo-router";
-import { ArrowForward, Edit, Trash } from "iconsax-react-native";
+import { ArrowForward, Back, Edit, Trash } from "iconsax-react-native";
 import React, { useEffect, useRef, useState } from "react";
+
+import Entypo from "@expo/vector-icons/Entypo";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   ActivityIndicator,
   Button,
@@ -37,14 +40,68 @@ import RBSheet from "react-native-raw-bottom-sheet";
 import { deleteObject, ref } from "firebase/storage";
 import { MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
+const categoryMapping = {
+  "Academic Event": {
+    icon: <MaterialIcons name="my-library-books" size={24} color="black" />,
+    label: "Academic Event",
+  },
+  "Cultural Event": {
+    icon: <Entypo name="hour-glass" size={24} color="black" />,
+    label: "Cultural Event",
+  },
+  "Social Event": {
+    icon: <Ionicons name="people-circle-outline" size={24} color="black" />,
+    label: "Social Event",
+  },
+  "Sports & Recreation Event": {
+    icon: <MaterialIcons name="sports-gymnastics" size={24} color="black" />,
+    label: "Sports & Recreation",
+  },
+  "Career Event": {
+    icon: <MaterialIcons name="work-outline" size={24} color="black" />,
+    label: "Career Event",
+  },
+  "Health & Wellness Event": {
+    icon: <MaterialIcons name="health-and-safety" size={24} color="black" />,
+    label: "Health & Wellness Event",
+  },
+  "Religious Event": {
+    icon: <MaterialIcons name="church" size={24} color="black" />,
+    label: "Religious Event",
+  },
+};
+
+const CategoryDisplay = ({ category }) => {
+  const categoryInfo = categoryMapping[category];
+
+  if (!categoryInfo) return null;
+
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      {categoryInfo.icon}
+      <Text style={{ marginLeft: 5 }}>{categoryInfo.label}</Text>
+    </View>
+  );
+};
 
 export default function Index() {
-  const { eventName, time, description, eventID, date } =
+  const { eventName, time, description, eventID, date, category } =
     useLocalSearchParams();
+//state variables
   const [event, setEvent] = useState<DocumentData | EventData>();
   const refRBSheet = useRef<any>();
   const [isVisible, setIsVisible] = useState(false);
-
+  const { setLoading, getYourEvents, loading } = useUserContext();
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [active, setActive] = useState(0);
+//react native bottom tab controller
   //to open bottom tab
   const openBottomSheet = () => {
     setIsVisible(true);
@@ -55,7 +112,7 @@ export default function Index() {
     setIsVisible(false);
     refRBSheet.current.close();
   };
-
+//Event Details Functionality
   const shareEvent = async () => {
     try {
       const result = await Share.share({
@@ -79,15 +136,6 @@ export default function Index() {
       alert(err.message);
     }
   };
-  const [active, setActive] = useState(0);
-  function changeImage({ nativeEvent }: any) {
-    const slide = Math.ceil(
-      nativeEvent.contentOffset.x / nativeEvent.layoutMeasurement.width
-    );
-    if (slide !== active) {
-      setActive(slide);
-    }
-  }
   const EditEvent = () => {
     router.navigate({
       pathname: "/editEvent",
@@ -101,86 +149,7 @@ export default function Index() {
       },
     });
   };
-  const options = [
-    {
-      name: "Edit Event",
-      icon: <Edit size="28" color={Colors.light.blue} variant="Bulk" />,
-      action: EditEvent,
-    },
-    {
-      name: "Delete Event",
-      icon: <Trash size="28" color={Colors.light.blue} variant="Bulk" />,
-      action: openBottomSheet,
-    },
-    {
-      name: "Share Event",
-      icon: <ArrowForward size="32" color={Colors.light.blue} variant="Bulk" />,
-      action: shareEvent,
-    },
-  ];
-
-  const { setLoading, getYourEvents } = useUserContext();
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [mapRegion, setMapRegion] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
-  const [mapLoaded, setMapLoaded] = useState(false);
-
-  const fetchEvent = async () => {
-    setLoading(true);
-    try {
-      const id = Number(eventID); // Convert eventID to a number explicitly
-      if (isNaN(id)) {
-        throw new Error("Invalid eventID. It must be a number.");
-      }
-
-      const q = query(EventRef, where("eventID", "==", id));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const eventData = querySnapshot.docs[0].data();
-        setEvent(eventData);
-        console.log("fetched", eventData.location);
-        if (
-          eventData.location.MapDetails.lat &&
-          eventData.location.MapDetails.lng
-        ) {
-          setMapRegion({
-            latitude: eventData.location.MapDetails.lat,
-            longitude: eventData.location.MapDetails.lng,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          });
-          setMapLoaded(true);
-        }
-      } else {
-        console.log("No event found with the provided ID.");
-      }
-    } catch (error) {
-      console.error("Error fetching event:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvent();
-    if (event?.location?.MapDetails?.lat && event?.location?.MapDetails?.lng) {
-      setMapRegion({
-        latitude: event.location.MapDetails.lat,
-        longitude: event.location.MapDetails.lng,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      });
-      setMapLoaded(true);
-    }
-  }, []);
-
-  console.log("data", event?.location);
-
+  
   const deleteEvent = async (eventID: number) => {
     setIsDeleting(true);
     try {
@@ -231,6 +200,88 @@ export default function Index() {
       router.navigate("/(tabs)");
     }
   };
+  
+  const options = [
+    {
+      name: "Edit Event",
+      icon: <Edit size="28" color={Colors.light.blue} variant="Bulk" />,
+      action: EditEvent,
+    },
+    {
+      name: "Delete Event",
+      icon: <Trash size="28" color={Colors.light.blue} variant="Bulk" />,
+      action: openBottomSheet,
+    },
+    {
+      name: "Share Event",
+      icon: <ArrowForward size="32" color={Colors.light.blue} variant="Bulk" />,
+      action: shareEvent,
+    },
+  ];
+
+
+
+  const fetchEvent = async () => {
+    setLoading(true);
+    try {
+      const id = Number(eventID);
+      if (isNaN(id)) {
+        throw new Error("Invalid eventID. It must be a number.");
+      }
+
+      const q = query(EventRef, where("eventID", "==", id));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const eventData = querySnapshot.docs[0].data();
+        setEvent(eventData); // Ensure eventData has the structure you expect
+        console.log("fetched", eventData.location);
+        if (
+          eventData.location?.MapDetails?.lat &&
+          eventData.location?.MapDetails?.lng
+        ) {
+          setMapRegion({
+            latitude: eventData.location.MapDetails.lat,
+            longitude: eventData.location.MapDetails.lng,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          });
+          setMapLoaded(true);
+        }
+      } else {
+        console.log("No event found with the provided ID.");
+      }
+    } catch (error) {
+      console.error("Error fetching event:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  function changeImage({ nativeEvent }: any) {
+    const slide = Math.ceil(
+      nativeEvent.contentOffset.x / nativeEvent.layoutMeasurement.width
+    );
+    if (slide !== active) {
+      setActive(slide);
+    }
+  }
+
+  useEffect(() => {
+    fetchEvent();
+    if (event?.location?.MapDetails?.lat && event?.location?.MapDetails?.lng) {
+      setMapRegion({
+        latitude: event.location.MapDetails.lat,
+        longitude: event.location.MapDetails.lng,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
+      setMapLoaded(true);
+    }
+  }, [eventID]);
+
+
+
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -239,22 +290,36 @@ export default function Index() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: sizes.marginSM }}
         >
+          <Pressable
+            onPress={() => router.back()}
+            style={{
+              position: "absolute",
+              padding: sizes.marginSM,
+              backgroundColor: "white",
+              zIndex: 9999,
+              marginLeft: 10,
+              marginTop: 10,
+              borderRadius: 50,
+            }}
+          >
+            <Back size="24" color="black" />
+          </Pressable>
           <ScrollView
             pagingEnabled
             horizontal
             onScroll={changeImage}
             showsHorizontalScrollIndicator={false}
-            style={{ width: sizes.screenWidth, height: sizes.screenHeight / 3 }} // Adjusted height to match children
+            style={{ width: sizes.screenWidth, height: sizes.screenHeight / 3 }}
           >
-            {mapLoaded ? (
-              event.images.map((item: ImageObject, index: number) => {
+            {!loading ? (
+              event?.images?.map((item: ImageObject, index: number) => {
                 return (
                   <View
                     key={index}
                     style={{
-                      width: sizes.screenWidth, // Set width to match the ScrollView
-                      height: "100%", // Make it full height of the ScrollView
-
+                      width: sizes.screenWidth,
+                      height: "100%",
+                      position: "relative",
                       marginBottom: sizes.marginSM,
                     }}
                   >
@@ -266,6 +331,14 @@ export default function Index() {
                         resizeMode: "cover",
                       }}
                     />
+                    <View
+                      style={{
+                        ...StyleSheet.absoluteFillObject,
+                        backgroundColor: "rgba(0, 0, 0, 0.3)",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    ></View>
                   </View>
                 );
               })
@@ -274,12 +347,33 @@ export default function Index() {
             )}
           </ScrollView>
 
+          <View style={styles.dotContainer}>
+            {!loading ? (
+              event?.images?.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor:
+                        active === index
+                          ? Colors.light.blue
+                          : Colors.light.grey,
+                    },
+                  ]}
+                />
+              ))
+            ) : (
+              <Text>.</Text>
+            )}
+          </View>
+
           <View
             style={{
               flexDirection: "column",
               gap: 15,
               paddingHorizontal: sizes.marginSM,
-              marginTop: sizes.marginSM,
+              marginTop: 10,
             }}
           >
             <Text
@@ -318,13 +412,17 @@ export default function Index() {
                 </Pressable>
               ))}
             </View>
+            <Divider style={{ backgroundColor: Colors.light.tint }} />
 
+            <CategoryDisplay category={category} />
+
+            <Divider style={{ backgroundColor: Colors.light.tint }} />
             <Text style={{ fontSize: sizes.fontSize[3] }}>Location</Text>
             <Divider style={{ backgroundColor: Colors.light.tint }} />
 
             {mapLoaded ? (
               <View style={{ flexDirection: "column", gap: sizes.marginSM }}>
-                <Text style={{ fontSize: sizes.fontSize[5] }}>
+                <Text style={{ fontSize: sizes.fontSize[5], color: "#595959" }}>
                   {event?.location?.description}
                 </Text>
                 <View
@@ -531,3 +629,18 @@ const ImageSkeletonLoader = () => (
     <Skeleton colorMode={"light"} radius={20} height={300} width={"100%"} />
   </MotiView>
 );
+
+const styles = StyleSheet.create({
+  dotContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: sizes.marginSM,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    margin: 3,
+  },
+});
