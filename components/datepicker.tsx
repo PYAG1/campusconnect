@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Pressable, Text, TextInput, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Fontisto } from '@expo/vector-icons';
@@ -16,7 +16,7 @@ export default function DatePickerComponent({
   touched,
   placeholder,
   Datemode
-}: {
+}:{
   placeholder?: string;
   label?: any;
   values: any;
@@ -29,6 +29,13 @@ export default function DatePickerComponent({
 }) {
   const [date, setDate] = useState<Date | null>(null);
   const [show, setShow] = useState(false);
+
+  // Set the date from Formik values on component mount and when values change
+  useEffect(() => {
+    if (values[id]) {
+      setDate(new Date(values[id]));
+    }
+  }, [values[id]]);
 
   const onChange = (event: any, selectedDate: Date | undefined) => {
     setShow(false);
@@ -67,7 +74,7 @@ export default function DatePickerComponent({
           style={{
             flex: 1,
             borderWidth: 1,
-            borderColor: errors[id] ? '#F44336' : '#ccc',
+            borderColor: errors[id] && touched[id] ? '#F44336' : '#ccc',
             fontSize: 16,
             borderRadius: 8,
             color: Colors.light.text,

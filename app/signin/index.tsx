@@ -55,7 +55,7 @@ export default function Index() {
       
         }}
         onSubmit={async (values, { resetForm }) => {
-      await signIn(values.email,values.password)
+      //await signIn(values.email,values.password)
     router.push("/(tabs)")
     resetForm()
         }}

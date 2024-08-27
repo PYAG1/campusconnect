@@ -1,31 +1,46 @@
+import SelectComponent from "@/components/core-ui/SelectInput";
 import DatePickerComponent from "@/components/datepicker";
+import GooglePlacesInput from "@/components/MapsInput";
 import TextAreaComponent from "@/components/textArea";
 import TextInputComponent from "@/components/textinput";
 import { EventRef, storageBucket } from "@/config/firebase";
 import { useUserContext } from "@/config/usercontext";
 import { Colors } from "@/constants/Colors";
+import { campusEventCategories } from "@/constants/EventData";
 import { sizes } from "@/constants/sizes&fonts";
-import { ImageObject } from "@/constants/Types";
+import { ImageObject, MapData } from "@/constants/Types";
+import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { addDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { Formik } from "formik";
-import { AddCircle } from "iconsax-react-native";
-import React, { useEffect, useState } from "react";
+import { AddCircle, Category, Map1, Trash } from "iconsax-react-native";
+import { MotiView } from "moti";
+import { Skeleton } from "moti/skeleton";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
+import {
+  GooglePlaceDetail,
+  GooglePlacesAutocomplete,
+  Point,
+} from "react-native-google-places-autocomplete";
+import RBSheet from "react-native-raw-bottom-sheet";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Yup from 'yup';
+import * as Yup from "yup";
 
 export default function Create() {
-  const { userEmail, fetchData,getYourEvents } = useUserContext();
+  const { userEmail, fetchData, getYourEvents } = useUserContext();
   useEffect(() => {
     fetchData();
   }, []);
@@ -103,17 +118,17 @@ export default function Create() {
   };
 
   const eventSchema = Yup.object().shape({
-    eventName: Yup.string().required('Event name is required'),
-    description: Yup.string().required('Description is required'),
-    location: Yup.string().required('Location is required'),
+    eventName: Yup.string().required("Event name is required"),
+    description: Yup.string().required("Description is required"),
+    location: Yup.object().required("Location is required").nullable(),
     date: Yup.date()
-      .required('Date is required')
-      .min(new Date(), 'Date cannot be in the past'),
-    time: Yup.string().required('Time is required'),
+      .required("Date is required")
+      .min(new Date(), "Date cannot be in the past"),
+    time: Yup.string().required("Time is required"),
+    category:Yup.string().required("Category is required"),
   });
 
   const createEvent = async (data) => {
-
     if (selectedImages.length === 0) {
       alert("Please select at least one image.");
       return;
@@ -132,177 +147,370 @@ export default function Create() {
           eventID: Math.ceil(Math.random() * 1000000000),
         });
       }
-setSelectedImages([])
+      setSelectedImages([]);
       console.log("Event created successfully");
     } catch (error) {
       console.error("Error creating event:", error);
     } finally {
       setLoading(false);
-  await    getYourEvents()
-      
+      await getYourEvents();
     }
   };
+  const refRBSheet = useRef<any>();
+  const [isVisible, setIsVisible] = useState(false);
 
+  //to open bottom tab
+  const openBottomSheet = () => {
+    setIsVisible(true);
+    refRBSheet.current.open();
+  };
+  //to close bottom tab
+  const closeBottomSheet = () => {
+    setIsVisible(false);
+    refRBSheet.current.close();
+  };
 
+  const [location, setLocation] = useState<MapData | undefined>();
+
+  
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Create Event</Text>
-      <ScrollView
-        style={{ height: "100%", paddingVertical: sizes.marginSM + 5 }}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={10} // Adjust this value as needed
       >
-        <View>
-          <ScrollView horizontal={true} style={styles.scrollView}>
-            {selectedImages.length > 0 ? (
-              selectedImages.map((imageUri, index) => (
-                <View key={index} style={styles.imageContainer}>
-                  <Image source={{ uri: imageUri }} style={styles.image} />
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => removeImage(imageUri)}
-                  >
-                    <Text style={styles.removeButtonText}>X</Text>
-                  </TouchableOpacity>
-                  {index === 0 && (
-                    <TouchableOpacity
-                      onPress={pickImageAsync}
-                      style={{
-                        position: "absolute",
-                        bottom: 5,
-                        right: 5,
-                        borderRadius: 50,
-                        backgroundColor: Colors.light.button,
-                        padding: 8,
-                        flexDirection: "row",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <AddCircle size="22" color="white" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              ))
-            ) : (
-              <View style={styles.noImageContainer}>
-                <Text style={styles.noImageText}>No image selected</Text>
-                <TouchableOpacity
-                  onPress={pickImageAsync}
-                  style={{
-                    position: "absolute",
-                    bottom: 5,
-                    right: 5,
-                    borderRadius: 50,
-                    backgroundColor: Colors.light.button,
-                    padding: 8,
-                    flexDirection: "row",
-                    justifyContent: "center",
-                  }}
-                >
-                  <AddCircle size="22" color="white" />
-                </TouchableOpacity>
-              </View>
-            )}
-          </ScrollView>
-        </View>
-        <Formik
-          initialValues={{
-            eventName: "",
-            description: "",
-            date: "",
-            time: "",
-            location: "",
-          }}
-          validationSchema={eventSchema}
-          onSubmit={async (values, { resetForm }) => {
-            await createEvent(values);
-            resetForm();
-          }}
+        <ScrollView
+          style={{ height: "100%", paddingVertical: sizes.marginSM + 5 }}
+          showsVerticalScrollIndicator={false}
         >
-          {({
-            handleChange,
-            handleBlur,
-            handleSubmit,
-            errors,
-            values,
-            touched,
-            setFieldValue,
-          }) => (
-            <View
-              style={{
-                flexDirection: "column",
-                gap: 12,
-                width: "100%",
-                marginTop: sizes.marginSM,
-                paddingVertical: sizes.marginSM * 1.5,
-              }}
-            >
-              <TextInputComponent
-                placeholder="Event name"
-                values={values}
-                handleChange={handleChange}
-                handleBlur={handleBlur}
-                id={"eventName"}
-                errors={errors}
-                touched={touched}
-              />
-              <TextAreaComponent
-                label={"Description"}
-                placeholder="Enter description"
-                values={values}
-                handleChange={handleChange}
-                handleBlur={handleBlur}
-                id={"description"}
-                errors={errors}
-                touched={touched}
-              />
-              <TextInputComponent
-                label={"Location"}
-                placeholder="Location"
-                values={values}
-                handleChange={handleChange}
-                handleBlur={handleBlur}
-                id={"location"}
-                errors={errors}
-                touched={touched}
-              />
-              <DatePickerComponent
-                values={values}
-                label={"Date"}
-                id={"date"}
-                handleChange={handleChange}
-                touched={touched}
-                Datemode={"date"}
-                errors={errors}
-              />
-              <DatePickerComponent
-                values={values}
-                label={"Time"}
-                id={"time"}
-                handleChange={handleChange}
-                touched={touched}
-                Datemode={"time"}
-                errors={errors}
-              />
-              <Pressable
-                onPress={handleSubmit}
+          <View>
+            <ScrollView horizontal={true} style={styles.scrollView}>
+              {selectedImages.length > 0 ? (
+                selectedImages.map((imageUri, index) => (
+                  <View key={index} style={styles.imageContainer}>
+                    <Image source={{ uri: imageUri }} style={styles.image} />
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => removeImage(imageUri)}
+                    >
+                      <Text style={styles.removeButtonText}>X</Text>
+                    </TouchableOpacity>
+                    {index === 0 && (
+                      <TouchableOpacity
+                        onPress={pickImageAsync}
+                        style={{
+                          position: "absolute",
+                          bottom: 5,
+                          right: 5,
+                          borderRadius: 50,
+                          backgroundColor: Colors.light.button,
+                          padding: 8,
+                          flexDirection: "row",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <AddCircle size="22" color="white" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ))
+              ) : (
+                <View style={styles.noImageContainer}>
+                  <Text style={styles.noImageText}>No image selected</Text>
+                  <TouchableOpacity
+                    onPress={pickImageAsync}
+                    style={{
+                      position: "absolute",
+                      bottom: 5,
+                      right: 5,
+                      borderRadius: 50,
+                      backgroundColor: Colors.light.button,
+                      padding: 8,
+                      flexDirection: "row",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <AddCircle size="22" color="white" />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+          <Formik
+            initialValues={{
+              eventName: "",
+              description: "",
+              date: "",
+              time: "",
+              category:"",
+              location: undefined || {
+                description: "",
+                MapDetails: undefined,
+              },
+            }}
+            validationSchema={eventSchema}
+            onSubmit={async (values, { resetForm }) => {
+              if (!location) {
+                alert("Please select a location.");
+                return;
+              }
+
+              values.location = location;
+              console.log("new", values);
+              await createEvent(values);
+              setSelectedImages([]);
+              resetForm();
+             setLocation(undefined)
+            }}
+          >
+            {({
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              errors,
+              values,
+              touched,
+              setFieldValue,
+            }) => (
+              <View
                 style={{
+                  flexDirection: "column",
+                  gap: 12,
                   width: "100%",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  backgroundColor: Colors.light.button,
-                  paddingVertical: sizes.marginSM,
-                  borderRadius: 10,
+                  marginTop: sizes.marginSM,
+                  paddingVertical: sizes.marginSM * 1.5,
                 }}
               >
-                <Text style={{ color: "white" }}>
-                  {loading ? "Loading..." : "Submit"}
-                </Text>
-              </Pressable>
+                <TextInputComponent
+                  placeholder="Event name"
+                  values={values}
+                  handleChange={handleChange}
+                  handleBlur={handleBlur}
+                  id={"eventName"}
+                  errors={errors}
+                  touched={touched}
+                />
+                <TextAreaComponent
+                  label={"Description"}
+                  placeholder="Enter description"
+                  values={values}
+                  handleChange={handleChange}
+                  handleBlur={handleBlur}
+                  id={"description"}
+                  errors={errors}
+                  touched={touched}
+                />
+          <SelectComponent
+                  label={"Event Category"}
+                  values={values}
+                  handleChange={handleChange}
+           
+                  id={"category"}
+                  touched={touched}
+                  data={campusEventCategories}
+                  errors={errors}
+                />
+
+                <View
+                  style={{
+                    flexDirection: "column",
+                    gap: 12,
+                    width: "100%",
+                    position: "relative",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: sizes.fontSize[3],
+                      color: Colors.light.text,
+                    }}
+                  >
+                    Location
+                  </Text>
+                  <View style={{ position: "relative" }}>
+                    <TextInput
+                      readOnly
+                      placeholder="Select and event"
+                      value={location?.description}
+                      style={{
+                        borderWidth: 1,
+                        borderColor:
+                          errors["location"] && touched["location"]
+                            ? "#F44336"
+                            : "transparent",
+                        fontSize: 16,
+                        borderRadius: 8,
+                        color: Colors.light.text,
+                        paddingVertical: 11,
+                        paddingHorizontal: 16,
+                        backgroundColor: Colors.light.tint2,
+                        paddingRight: 50,
+                      }}
+                    />
+                    <Pressable
+                      onPress={openBottomSheet}
+                      style={{
+                        position: "absolute",
+                        right: 15,
+                        top: "50%",
+                        transform: [{ translateY: -12.5 }],
+                      }}
+                    >
+                      <Map1 size="25" color={Colors.light.button} />
+                    </Pressable>
+                  </View>
+                </View>
+
+                <DatePickerComponent
+                  values={values}
+                  label={"Date"}
+                  id={"date"}
+                  handleChange={handleChange}
+                  touched={touched}
+                  Datemode={"date"}
+                  errors={errors}
+                />
+        
+                <DatePickerComponent
+                  values={values}
+                  label={"Time"}
+                  id={"time"}
+                  handleChange={handleChange}
+                  touched={touched}
+                  Datemode={"time"}
+                  errors={errors}
+                />
+                <Pressable
+                  onPress={() => handleSubmit()}
+                  style={{
+                    width: "100%",
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: Colors.light.button,
+                    paddingVertical: sizes.marginSM,
+                    borderRadius: 10,
+                  }}
+                >
+                  <Text style={{ color: "white" }}>
+                    {loading ? "Loading..." : "Submit"}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+          </Formik>
+        </ScrollView>
+      </KeyboardAvoidingView>
+      <RBSheet
+        ref={refRBSheet}
+        useNativeDriver={false}
+        customStyles={{
+          container: {
+            backgroundColor: "transparent",
+
+            height: sizes.screenHeight - 100,
+          },
+          wrapper: {
+            backgroundColor: "rgba(0,0,0,0.5)",
+          },
+          draggableIcon: {
+            backgroundColor: "#000",
+          },
+        }}
+        customModalProps={{
+          animationType: "slide",
+          statusBarTranslucent: true,
+        }}
+        customAvoidingViewProps={{
+          enabled: false,
+        }}
+      >
+        <View
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: Colors.light.background,
+            borderRadius: 30,
+            paddingHorizontal: sizes.marginSM,
+            paddingVertical: sizes.marginSM + 5,
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                width: 50,
+                height: 50,
+                backgroundColor: Colors.light.tint2,
+                borderRadius: 100,
+                justifyContent: "center",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Map1 size="28" color={Colors.light.blue} variant="Bulk" />
             </View>
-          )}
-        </Formik>
-      </ScrollView>
+            <Pressable onPress={closeBottomSheet}>
+              <Ionicons name="close-outline" size={24} color="black" />
+            </Pressable>
+          </View>
+          <View>
+            <Text style={{ fontSize: sizes.fontSize[5] + 2, marginBottom: 8 }}>
+              Add a location to your event
+            </Text>
+            <Text style={{ color: Colors.light.tint }}>
+              Choose where your location will be hosted
+            </Text>
+          </View>
+
+          <GooglePlacesAutocomplete
+            placeholder="Search Location"
+            onPress={(data, details = null) => {
+              console.log("data", JSON.stringify(data));
+              console.log(
+                "details",
+                JSON.stringify(details?.geometry?.location)
+              );
+
+              setLocation({
+                description: data.description,
+                MapDetails: details?.geometry?.location,
+              });
+              closeBottomSheet()
+            }}
+            query={{
+              key: `${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`,
+              language: "en",
+            }}
+            textInputProps={{
+              style: {
+                borderWidth: 1,
+                borderColor: "transparent",
+                fontSize: 16,
+                borderRadius: 8,
+                color: Colors.light.text,
+                paddingVertical: 11,
+                paddingHorizontal: 16,
+                backgroundColor: Colors.light.tint2,
+                width: "100%",
+              },
+            }}
+            fetchDetails={true}
+            onFail={(error) => console.error(error)}
+            onNotFound={() => console.log("no results")}
+          />
+        </View>
+      </RBSheet>
     </SafeAreaView>
   );
 }
@@ -311,7 +519,7 @@ const styles = StyleSheet.create({
   container: {
     width: sizes.screenWidth,
     paddingHorizontal: sizes.marginSM,
-    paddingVertical: sizes.marginSM,
+    //paddingVertical: sizes.marginSM,
     backgroundColor: Colors.light.background,
     height: "100%",
   },
@@ -319,7 +527,7 @@ const styles = StyleSheet.create({
     fontSize: sizes.fontSize[5] + 5,
   },
   scrollView: {
-    marginVertical: sizes.marginSM,
+    // marginVertical: sizes.marginSM,
 
     maxHeight: 220,
   },
