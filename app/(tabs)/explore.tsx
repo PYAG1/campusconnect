@@ -1,8 +1,14 @@
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { sizes } from "@/constants/sizes&fonts";
-import { Book1, Health, People, SearchStatus } from "iconsax-react-native";
+import {
+  Book1,
+  Health,
+  People,
+  Save2,
+  SearchStatus,
+} from "iconsax-react-native";
 import { TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserContext } from "@/config/usercontext";
@@ -16,8 +22,8 @@ import Carousel, {
 import React from "react";
 import { dateToMonthDay } from "@/utils/helper";
 import { Location } from "iconsax-react-native";
+import { ScrollView } from "react-native-gesture-handler";
 
-const data = [...new Array(6).keys()];
 const width = Dimensions.get("window").width;
 export default function TabTwoScreen() {
   const { getAllEvents, allEvents } = useUserContext();
@@ -26,22 +32,16 @@ export default function TabTwoScreen() {
   }, []);
 
   const ref = React.useRef<ICarouselInstance>(null);
-  const progress = useSharedValue<number>(0);
-
-  const eventCategories = [
-    {
-      icon: <Book1 size="32" color="#FF8A65" />,
-      title: "Academic & Career Development",
-    },
-    {
-      icon: <People size="32" color="#FF8A65" />,
-      title: "Social & Extracurricular Activities",
-    },
-    { icon: <Health size="32" color="#FF8A65" />, title: "Health & Wellness" },
-    { icon: "", title: "Cultural Events" },
-    { icon: "", title: "Community Service" },
+  const categories = [
+    "Educational",
+    "Career",
+    "Music",
+    "Food",
+    "Sports",
+    "Religious",
+    "Movies",
+    "Political",
   ];
-
   return (
     <SafeAreaView
       style={{
@@ -68,10 +68,51 @@ export default function TabTwoScreen() {
         />
         <TextInput placeholder="Search an event" style={styles.input} />
       </View>
+
+      <ScrollView
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[
+          {
+            flexDirection: "row",
+            gap: 20,
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        ]}
+        style={[
+          {
+            marginVertical: 20,
+            paddingVertical: 10,
+          },
+        ]}
+      >
+        {categories.map((e, i) => {
+          return (
+            <Pressable
+              key={i}
+              style={[
+                {
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: 20,
+                  // paddingVertical: 10,
+                  borderWidth: 1.2,
+                  height: 40,
+                  borderRadius: 20,
+                },
+              ]}
+            >
+              <Text>{e}</Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
       <FlatList
         data={allEvents}
         renderItem={({ item, index }) => {
-          console.log(item.images);
           return (
             <View
               key={index}
@@ -89,8 +130,8 @@ export default function TabTwoScreen() {
                     zIndex: 100,
                     left: 20,
                     top: 20,
-                    backgroundColor: "rgba(255, 255, 255, 0.3)",
-                    // backgroundColor: "rgba(0, 0,0, 0.2)",
+                    // backgroundColor: "rgba(255, 255, 255, 0.3)",
+                    backgroundColor: "rgba(0, 0,0, 0.2)",
                     padding: 10,
                     borderRadius: 10,
                     gap: 5,
@@ -120,6 +161,28 @@ export default function TabTwoScreen() {
                   {dateToMonthDay(item.date).day}
                 </Text>
               </View>
+
+              <View
+                style={[
+                  {
+                    position: "absolute",
+                    zIndex: 1001,
+                    right: 20,
+                    top: 20,
+                    borderColor: "#000000",
+                    width: 50,
+                    height: 50,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 25,
+                    backgroundColor: "rgba(0, 0,0, 0.2)",
+                  },
+                ]}
+              >
+                <Pressable>
+                  <Save2 size="22" color="#ffffff" />
+                </Pressable>
+              </View>
               {item.images?.[0] ? (
                 <View>
                   <Carousel
@@ -146,12 +209,93 @@ export default function TabTwoScreen() {
                   <Text>No images uploaded</Text>
                 </View>
               )}
-              <View>
-                <Text>{item.eventName}</Text>
-                <View>
-                  <Location size="16" variant="Bold" color="#000000" />
-                  <Text>{item.location?.description}</Text>
+              <View
+                style={[
+                  {
+                    gap: 10,
+                    paddingVertical: 15,
+                    borderWidth: 1,
+                    borderColor: "#f5f5f5",
+                    borderRadius: 30,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    {
+                      fontSize: 20,
+                      fontWeight: 400,
+                    },
+                  ]}
+                >
+                  {item.eventName}
+                </Text>
+                <View
+                  style={[
+                    {
+                      flexDirection: "row",
+                      gap: 10,
+                    },
+                  ]}
+                >
+                  <Location size="18" variant="Bold" color="#000000" />
+                  <Text style={[{ fontWeight: 200 }]} numberOfLines={1}>
+                    {item.location?.description}
+                  </Text>
                 </View>
+                <View
+                  style={[
+                    {
+                      flexDirection: "row",
+                      gap: 5,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      {
+                        fontWeight: 200,
+                        fontSize: 18,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        {
+                          fontWeight: "500",
+                        },
+                      ]}
+                    >
+                      Description:{" "}
+                    </Text>
+                    {item?.description}
+                  </Text>
+                </View>
+
+                <Pressable
+                  style={[
+                    {
+                      flex: 1,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      paddingVertical: 15,
+                      backgroundColor: "#FF8A65",
+                      borderRadius: 25,
+                      marginTop: 10,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      {
+                        color: "#ffffff",
+                        fontSize: 18,
+                      },
+                    ]}
+                  >
+                    View More
+                  </Text>
+                </Pressable>
               </View>
             </View>
           );
