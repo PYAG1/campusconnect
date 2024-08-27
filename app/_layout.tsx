@@ -8,6 +8,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Toast, { BaseToast, ErrorToast } from "react-native-toast-message";
@@ -93,34 +94,33 @@ export default function RootLayout() {
     
   };
   return (
-    <>
-    <UserContextProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-  
-        <Stack
-          screenOptions={{
-            headerShown: false,
-          }}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <UserContextProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="signup" />
-    
-          <Stack.Screen name="editEvent/index" />
-  
-          <Stack.Screen
-            options={{
-              presentation: "modal",
+          <Toast />
+          <Stack
+            screenOptions={{
+              headerShown: false,
             }}
-            name="profile/index"
-          />
-          <Stack.Screen
-            name="eventDetails/index"
-          />
-        </Stack>
-      </ThemeProvider>
-    </UserContextProvider>
-    <Toast config={toastConfig} />
-    </>
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="signup" />
+
+            <Stack.Screen name="editEvent/index" />
+
+            <Stack.Screen
+              options={{
+                presentation: "modal",
+              }}
+              name="profile/index"
+            />
+            <Stack.Screen name="eventDetails/index" />
+          </Stack>
+        </ThemeProvider>
+      </UserContextProvider>
+    </GestureHandlerRootView>
   );
 }
 
