@@ -1,9 +1,10 @@
 import { Colors } from '@/constants/Colors'
 import { sizes } from '@/constants/sizes&fonts'
 import React from 'react'
-import { View,Text } from 'react-native'
+import { View,Text, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router'
 
 export default function index() {
   return (
@@ -39,6 +40,9 @@ Yaw Gyek
 020299
     </Text>
 </View>
+<Pressable onPress={()=> router.navigate("/signin")} style={{padding:sizes.marginSM}}>
+  <Text>Go to sign in</Text>
+</Pressable>
         </SafeAreaView>
   )
 }

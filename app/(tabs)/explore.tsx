@@ -23,6 +23,8 @@ import React from "react";
 import { dateToMonthDay } from "@/utils/helper";
 import { Location } from "iconsax-react-native";
 import { ScrollView } from "react-native-gesture-handler";
+import { router } from "expo-router";
+import { EventData } from "@/constants/Types";
 
 const width = Dimensions.get("window").width;
 export default function TabTwoScreen() {
@@ -111,8 +113,9 @@ export default function TabTwoScreen() {
       </ScrollView>
 
       <FlatList
+      showsVerticalScrollIndicator={false}
         data={allEvents}
-        renderItem={({ item, index }) => {
+        renderItem={({ item, index }:{item:EventData,index:number}) => {
           return (
             <View
               key={index}
@@ -120,6 +123,7 @@ export default function TabTwoScreen() {
                 marginBottom: 50,
                 borderRadius: 30,
               }}
+
             >
               <View
                 style={[
@@ -131,7 +135,7 @@ export default function TabTwoScreen() {
                     left: 20,
                     top: 20,
                     // backgroundColor: "rgba(255, 255, 255, 0.3)",
-                    backgroundColor: "rgba(0, 0,0, 0.2)",
+                    backgroundColor:"white",
                     padding: 10,
                     borderRadius: 10,
                     gap: 5,
@@ -141,7 +145,7 @@ export default function TabTwoScreen() {
                 <Text
                   style={[
                     {
-                      color: "#fff",
+                      color: "black",
                       fontWeight: 300,
                       fontSize: 10,
                     },
@@ -152,7 +156,7 @@ export default function TabTwoScreen() {
                 <Text
                   style={[
                     {
-                      color: "#fff",
+                      color: "black",
                       fontWeight: 900,
                       fontSize: 18,
                     },
@@ -217,6 +221,8 @@ export default function TabTwoScreen() {
                     borderWidth: 1,
                     borderColor: "#f5f5f5",
                     borderRadius: 30,
+                    flexDirection:"row",
+                    justifyContent:"space-between"
                   },
                 ]}
               >
@@ -230,19 +236,6 @@ export default function TabTwoScreen() {
                 >
                   {item.eventName}
                 </Text>
-                <View
-                  style={[
-                    {
-                      flexDirection: "row",
-                      gap: 10,
-                    },
-                  ]}
-                >
-                  <Location size="18" variant="Bold" color="#000000" />
-                  <Text style={[{ fontWeight: 200 }]} numberOfLines={1}>
-                    {item.location?.description}
-                  </Text>
-                </View>
                 <View
                   style={[
                     {
@@ -266,13 +259,29 @@ export default function TabTwoScreen() {
                         },
                       ]}
                     >
-                      Description:{" "}
+                      HostedBy:{" "}
                     </Text>
-                    {item?.description}
+                    {item?.hostedBy}
                   </Text>
                 </View>
+             
 
-                <Pressable
+              </View>
+              <Pressable
+                onPress={()=> router.push({
+                  pathname: "/eventDetails",
+                  params: {
+                    eventID: item.eventID,
+                    eventName: item.eventName,
+                    date: item.date,
+                    description: item.description,
+                    category:item.category,
+                    isVerified: item.isVerified as string,
+                    time: item.time,
+                    createdBy:item.createdBy
+                    
+                  },
+                })}
                   style={[
                     {
                       flex: 1,
@@ -296,7 +305,6 @@ export default function TabTwoScreen() {
                     View More
                   </Text>
                 </Pressable>
-              </View>
             </View>
           );
         }}
@@ -336,3 +344,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
 });
+/*         router.push({
+                  pathname: "/eventDetails",
+                  params: {
+                    eventID: item.eventID,
+                    eventName: item.eventName,
+                    date: item.date,
+                    description: item.description,
+                    category:item.category,
+                    isVerified: item.isVerified as string,
+                    time: item.time,
+                    createdBy:item.createdBy
+                    
+                  },
+                })*/

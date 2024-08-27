@@ -85,13 +85,13 @@ const CategoryDisplay = ({ category }) => {
 };
 
 export default function Index() {
-  const { eventName, time, description, eventID, date, category } =
+  const { eventName, time, description, eventID, date, category, createdBy } =
     useLocalSearchParams();
-//state variables
+  //state variables
   const [event, setEvent] = useState<DocumentData | EventData>();
   const refRBSheet = useRef<any>();
   const [isVisible, setIsVisible] = useState(false);
-  const { setLoading, getYourEvents, loading } = useUserContext();
+  const { setLoading, getYourEvents, loading, user } = useUserContext();
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
@@ -101,7 +101,7 @@ export default function Index() {
   });
   const [mapLoaded, setMapLoaded] = useState(false);
   const [active, setActive] = useState(0);
-//react native bottom tab controller
+  //react native bottom tab controller
   //to open bottom tab
   const openBottomSheet = () => {
     setIsVisible(true);
@@ -112,7 +112,7 @@ export default function Index() {
     setIsVisible(false);
     refRBSheet.current.close();
   };
-//Event Details Functionality
+  //Event Details Functionality
   const shareEvent = async () => {
     try {
       const result = await Share.share({
@@ -149,7 +149,7 @@ export default function Index() {
       },
     });
   };
-  
+
   const deleteEvent = async (eventID: number) => {
     setIsDeleting(true);
     try {
@@ -200,7 +200,7 @@ export default function Index() {
       router.navigate("/(tabs)");
     }
   };
-  
+
   const options = [
     {
       name: "Edit Event",
@@ -218,8 +218,6 @@ export default function Index() {
       action: shareEvent,
     },
   ];
-
-
 
   const fetchEvent = async () => {
     setLoading(true);
@@ -279,10 +277,7 @@ export default function Index() {
       setMapLoaded(true);
     }
   }, [eventID]);
-
-
-
-
+console.log("here",createdBy)
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={{ height: "100%" }}>
@@ -394,23 +389,56 @@ export default function Index() {
             </Text>
             <Text>{description}</Text>
             <View style={{ width: "100%", flexDirection: "row", gap: 20 }}>
-              {options?.map((item, index) => (
-                <Pressable
-                  onPress={item.action}
-                  key={index}
-                  style={{
-                    width: 70,
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: 60,
-                    borderRadius: 10,
-                    backgroundColor: Colors.light.tint2,
-                  }}
-                >
-                  {item.icon}
-                </Pressable>
-              ))}
+             {
+              createdBy === user.email && (<>
+               <Pressable
+                onPress={EditEvent}
+                style={{
+                  width: 70,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: 60,
+                  borderRadius: 10,
+                  backgroundColor: Colors.light.tint2,
+                }}
+              >
+                <Edit size="28" color={Colors.light.blue} variant="Bulk" />
+              </Pressable>
+              <Pressable
+                onPress={openBottomSheet}
+                style={{
+                  width: 70,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: 60,
+                  borderRadius: 10,
+                  backgroundColor: Colors.light.tint2,
+                }}
+              >
+                <Trash size="28" color={Colors.light.blue} variant="Bulk" />
+              </Pressable></>) 
+             }
+              <Pressable
+                onPress={shareEvent}
+                style={{
+                  width: 70,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: 60,
+                  borderRadius: 10,
+                  backgroundColor: Colors.light.tint2,
+                }}
+              >
+                <ArrowForward
+                  size="32"
+                  color={Colors.light.blue}
+                  variant="Bulk"
+                />
+                
+              </Pressable>
             </View>
             <Divider style={{ backgroundColor: Colors.light.tint }} />
 

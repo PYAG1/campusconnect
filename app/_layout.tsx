@@ -99,7 +99,7 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <Toast />
+     
           <Stack
             screenOptions={{
               headerShown: false,
@@ -120,6 +120,7 @@ export default function RootLayout() {
           </Stack>
         </ThemeProvider>
       </UserContextProvider>
+      <Toast config={toastConfig} />
     </GestureHandlerRootView>
   );
 }

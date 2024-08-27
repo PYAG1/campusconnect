@@ -1,6 +1,5 @@
 import SelectComponent from "@/components/core-ui/SelectInput";
 import DatePickerComponent from "@/components/datepicker";
-import GooglePlacesInput from "@/components/MapsInput";
 import TextAreaComponent from "@/components/textArea";
 import TextInputComponent from "@/components/textinput";
 import { EventRef, storageBucket } from "@/config/firebase";
@@ -14,11 +13,10 @@ import * as ImagePicker from "expo-image-picker";
 import { addDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { Formik } from "formik";
-import { AddCircle, Category, Map1, Trash } from "iconsax-react-native";
-import { MotiView } from "moti";
-import { Skeleton } from "moti/skeleton";
+import { AddCircle, Map1 } from "iconsax-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -31,16 +29,15 @@ import {
   View,
 } from "react-native";
 import {
-  GooglePlaceDetail,
-  GooglePlacesAutocomplete,
-  Point,
+  GooglePlacesAutocomplete
 } from "react-native-google-places-autocomplete";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 import * as Yup from "yup";
 
 export default function Create() {
-  const { userEmail, fetchData, getYourEvents } = useUserContext();
+  const { user, fetchData, getYourEvents } = useUserContext();
   useEffect(() => {
     fetchData();
   }, []);
@@ -141,16 +138,34 @@ export default function Create() {
           ...data,
           images: images,
           createdAt: new Date().toISOString(),
-          createdBy: userEmail,
+          createdBy: user.email,
           isVerified: false,
+          hostedBy:user.username,
           savedBy: [],
           eventID: Math.ceil(Math.random() * 1000000000),
         });
+        Toast.show({
+          type: "customSuccessToast",
+          text1: `Event created`,
+          position: "top",
+          visibilityTime: 3000,
+          text1Style: {
+            fontSize: sizes.fontSize[5],
+          },
+        });
       }
       setSelectedImages([]);
-      console.log("Event created successfully");
+ 
     } catch (error) {
-      console.error("Error creating event:", error);
+      Toast.show({
+        type: "customErrorToast",
+        text1: `Failed to create event`,
+        position: "top",
+        visibilityTime: 3000,
+        text1Style: {
+          fontSize: sizes.fontSize[5],
+        },
+      });
     } finally {
       setLoading(false);
       await getYourEvents();
@@ -395,7 +410,7 @@ export default function Create() {
                   }}
                 >
                   <Text style={{ color: "white" }}>
-                    {loading ? "Loading..." : "Submit"}
+                    {loading ? (  <ActivityIndicator animating={true} color={"white"} />) : "Submit"}
                   </Text>
                 </Pressable>
               </View>

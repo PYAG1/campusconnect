@@ -12,6 +12,7 @@ export interface EventData {
   location:MapData;
   category?:string,
   time: string;
+  hostedBy?:string
 }
 export interface ImageObject {
   downloadURL: string;

@@ -20,6 +20,10 @@ interface UserContextProps {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   getYourEvents: () => Promise<void>;
   getAllEvents: () => Promise<void>; // Added this line
+  user: {
+    email: string;
+    username: string;
+  };
 }
 
 const UserContext = createContext<UserContextProps | null>(null);
@@ -40,15 +44,22 @@ export const UserContextProvider: FC<UserContextProviderProps> = ({
   children,
 }) => {
   const [userEmail, setUserEmail] = useState<string>("");
+  const [user, setUser] = useState({email:"",username:""});
   const [loading, setLoading] = useState(true);
   const [filteredEvents, setFilteredEvents] = useState<EventData[]>([]);
   const [allEvents, setAllEvents] = useState<EventData[]>([]);
 
   const fetchData = async () => {
     try {
-      const value = await AsyncStorage.getItem("CamEmail");
-      if (value !== null) {
-        setUserEmail(value);
+      const email = await AsyncStorage.getItem("CamEmail");
+      const username = await AsyncStorage.getItem("CamName");
+      if (email !== null && username !== null) {
+        setUser({
+          email: email,
+
+          username: username,
+        });
+        getYourEvents();
       }
     } catch (err) {
       console.log(err);
@@ -58,7 +69,7 @@ export const UserContextProvider: FC<UserContextProviderProps> = ({
   const getYourEvents = async () => {
     try {
       setLoading(true);
-      const q = query(EventRef, where("createdBy", "==", userEmail));
+      const q = query(EventRef, where("createdBy", "==", user.email));
       const snapshot = await getDocs(q);
       if (!snapshot.empty) {
         const events = snapshot.docs.map((doc) => ({
@@ -114,6 +125,7 @@ export const UserContextProvider: FC<UserContextProviderProps> = ({
         setLoading,
         getYourEvents,
         getAllEvents,
+        user
       }}
     >
       {children}

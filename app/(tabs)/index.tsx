@@ -22,10 +22,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 export default function HomeScreen() {
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = useState(true);
 
   const { loading, filteredEvents, getYourEvents } = useUserContext();
-
+console.log("here",filteredEvents)
   useEffect(() => {
     getYourEvents();
     Toast.show({
@@ -37,7 +37,9 @@ export default function HomeScreen() {
         fontSize: sizes.fontSize[5],
       },
     });
+    setRefreshing(false)
   }, []);
+
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -98,7 +100,7 @@ export default function HomeScreen() {
               <SkeletonLoader />
               <SkeletonLoader />
             </>
-          ) : filteredEvents.length ||
+          ) : 
             filteredEvents.filter((item) => item.isVerified === true).length ===
               0 ? (
             <View style={styles.eventContainer}>
@@ -113,9 +115,7 @@ export default function HomeScreen() {
               </View>
             </View>
           ) : (
-            filteredEvents
-              .filter((item) => item.isVerified === true)
-              .map((item: EventData, index: number) => (
+            filteredEvents.filter((item) => item.isVerified === true).map((item: EventData, index: number) => (
                 <Pressable
                   key={index}
                   onPress={() =>
@@ -129,6 +129,7 @@ export default function HomeScreen() {
                         category:item.category,
                         isVerified: item.isVerified as string,
                         time: item.time,
+                        createdBy:item.createdBy
                       },
                     })
                   }
@@ -199,6 +200,7 @@ export default function HomeScreen() {
                         isVerified: item.isVerified as string,  
                         category:item.category,
                         time: item.time,
+                        createdBy:item.createdBy
                       },
                     })
                   }
