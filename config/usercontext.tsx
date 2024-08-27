@@ -1,4 +1,11 @@
-import React, { createContext, useState, useEffect, ReactNode, FC, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  FC,
+  useContext,
+} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EventData } from "@/constants/Types";
 import { getDocs, query, where } from "firebase/firestore";
@@ -29,7 +36,9 @@ interface UserContextProviderProps {
   children: ReactNode;
 }
 
-export const UserContextProvider: FC<UserContextProviderProps> = ({ children }) => {
+export const UserContextProvider: FC<UserContextProviderProps> = ({
+  children,
+}) => {
   const [userEmail, setUserEmail] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [filteredEvents, setFilteredEvents] = useState<EventData[]>([]);
@@ -49,7 +58,7 @@ export const UserContextProvider: FC<UserContextProviderProps> = ({ children }) 
   const getYourEvents = async () => {
     try {
       setLoading(true);
-      const q = query(EventRef, where('createdBy', '==', userEmail));
+      const q = query(EventRef, where("createdBy", "==", userEmail));
       const snapshot = await getDocs(q);
       if (!snapshot.empty) {
         const events = snapshot.docs.map((doc) => ({
@@ -61,28 +70,33 @@ export const UserContextProvider: FC<UserContextProviderProps> = ({ children }) 
         setFilteredEvents([]);
       }
     } catch (error) {
-      console.error('Error fetching events:', error);
+      console.error("Error fetching events:", error);
     } finally {
       setLoading(false);
     }
   };
-
   const getAllEvents = async () => {
     setLoading(true);
     try {
-      const response = await getDocs(EventRef);
+      const verifiedEventsQuery = query(
+        EventRef,
+        where("isVerified", "==", true)
+      );
+
+      const response = await getDocs(verifiedEventsQuery);
+
       const eventData = response.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as unknown as EventData[];
+
       setAllEvents(eventData);
     } catch (error) {
-      console.error('Error fetching all events:', error);
+      console.error("Error fetching verified events:", error);
     } finally {
-      setLoading(false); // Set loading to false after fetching
+      setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchData();
     getYourEvents();
@@ -90,7 +104,18 @@ export const UserContextProvider: FC<UserContextProviderProps> = ({ children }) 
   }, []);
 
   return (
-    <UserContext.Provider value={{ userEmail, fetchData, filteredEvents, allEvents, loading, setLoading, getYourEvents, getAllEvents}}>
+    <UserContext.Provider
+      value={{
+        userEmail,
+        fetchData,
+        filteredEvents,
+        allEvents,
+        loading,
+        setLoading,
+        getYourEvents,
+        getAllEvents,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
