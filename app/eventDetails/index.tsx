@@ -85,7 +85,7 @@ const CategoryDisplay = ({ category }) => {
 };
 
 export default function Index() {
-  const { eventName, time, description, eventID, date, category, createdBy } =
+  const { eventName, time, description, eventID, date, category, createdBy, ...rest } =
     useLocalSearchParams();
   //state variables
   const [event, setEvent] = useState<DocumentData | EventData>();

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   FlatList,
@@ -17,14 +17,47 @@ import Carousel, {
   ICarouselInstance,
   // Pagination,
 } from "react-native-reanimated-carousel";
+import { router } from "expo-router";
 import { useUserContext } from "@/config/usercontext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { EventData } from "@/constants/Types";
+import { useFocusEffect } from "@react-navigation/native";
 
 const width = Dimensions.get("window").width;
 export default function saved() {
+  const [liked, setLiked] = useState<string[]>([]);
   const { getAllEvents, allEvents } = useUserContext();
   useEffect(() => {
     getAllEvents();
   }, []);
+  const [list, setList] = useState([]);
+  useFocusEffect(
+    useCallback(() => {
+      const getData = async () => {
+        try {
+          const value = await AsyncStorage.getItem("saved");
+          if (value !== null) {
+            setLiked(JSON.parse(value));
+          }
+        } catch (e) {
+          console.error("Error reading saved liked posts:", e);
+        }
+      };
+      getData();
+    }, [])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      getAllEvents();
+    }, [])
+  );
+  useEffect(() => {
+    async function syncChanges() {
+      await AsyncStorage.setItem("saved", JSON.stringify(liked));
+    }
+    syncChanges();
+  }, [liked]);
   const ref = React.useRef<ICarouselInstance>(null);
   return (
     <SafeAreaView
@@ -36,12 +69,15 @@ export default function saved() {
         backgroundColor: Colors.light.background,
       }}
     >
-
-      <Text style={[{
-        fontSize: 28,
-        fontWeight: 500,
-        marginBottom: 20
-      }]}>
+      <Text
+        style={[
+          {
+            fontSize: 28,
+            fontWeight: 500,
+            marginBottom: 20,
+          },
+        ]}
+      >
         Saved
       </Text>
       {/* <GooglePlacesAutocomplete
@@ -72,8 +108,10 @@ export default function saved() {
         onNotFound={() => console.log("no results")}
       /> */}
       <FlatList
-        data={allEvents}
-        renderItem={({ item, index }) => {
+        key={String(liked)}
+        showsVerticalScrollIndicator={false}
+        data={allEvents.filter(e => (liked.includes(String(e.eventID))))}
+        renderItem={({ item, index }: { item: EventData; index: number }) => {
           return (
             <View
               key={index}
@@ -92,7 +130,7 @@ export default function saved() {
                     left: 20,
                     top: 20,
                     // backgroundColor: "rgba(255, 255, 255, 0.3)",
-                    backgroundColor: "rgba(0, 0,0, 0.2)",
+                    backgroundColor: "white",
                     padding: 10,
                     borderRadius: 10,
                     gap: 5,
@@ -102,7 +140,7 @@ export default function saved() {
                 <Text
                   style={[
                     {
-                      color: "#fff",
+                      color: "black",
                       fontWeight: 300,
                       fontSize: 10,
                     },
@@ -113,7 +151,7 @@ export default function saved() {
                 <Text
                   style={[
                     {
-                      color: "#fff",
+                      color: "black",
                       fontWeight: 900,
                       fontSize: 18,
                     },
@@ -140,8 +178,24 @@ export default function saved() {
                   },
                 ]}
               >
-                <Pressable>
-                  <Save2 size="22" color="#ffffff" />
+                <Pressable
+                  onPress={() => {
+                    if (liked.includes(String(item.eventID))) {
+                      setLiked((_) => {
+                        return _.filter((e) => e != String(item.eventID));
+                      });
+                    } else {
+                      setLiked([...liked, String(item.eventID)]);
+                    }
+                  }}
+                >
+                  <Save2
+                    size="22"
+                    color="#ffffff"
+                    variant={
+                      liked.includes(String(item.eventID)) ? "Bold" : "Linear"
+                    }
+                  />
                 </Pressable>
               </View>
               {item.images?.[0] ? (
@@ -178,6 +232,8 @@ export default function saved() {
                     borderWidth: 1,
                     borderColor: "#f5f5f5",
                     borderRadius: 30,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
                   },
                 ]}
               >
@@ -191,19 +247,6 @@ export default function saved() {
                 >
                   {item.eventName}
                 </Text>
-                <View
-                  style={[
-                    {
-                      flexDirection: "row",
-                      gap: 10,
-                    },
-                  ]}
-                >
-                  <Location size="18" variant="Bold" color="#000000" />
-                  <Text style={[{ fontWeight: 200 }]} numberOfLines={1}>
-                    {item.location?.description}
-                  </Text>
-                </View>
                 <View
                   style={[
                     {
@@ -227,37 +270,51 @@ export default function saved() {
                         },
                       ]}
                     >
-                      Description:{" "}
+                      HostedBy:{" "}
                     </Text>
-                    {item?.description}
+                    {item?.hostedBy}
                   </Text>
                 </View>
-
-                <Pressable
+              </View>
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/eventDetails",
+                    params: {
+                      eventID: item.eventID,
+                      eventName: item.eventName,
+                      date: item.date,
+                      description: item.description,
+                      category: item.category,
+                      isVerified: item.isVerified as string,
+                      time: item.time,
+                      createdBy: item.createdBy,
+                    },
+                  })
+                }
+                style={[
+                  {
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingVertical: 15,
+                    backgroundColor: "#FF8A65",
+                    borderRadius: 25,
+                    marginTop: 10,
+                  },
+                ]}
+              >
+                <Text
                   style={[
                     {
-                      flex: 1,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      paddingVertical: 15,
-                      backgroundColor: "#FF8A65",
-                      borderRadius: 25,
-                      marginTop: 10,
+                      color: "#ffffff",
+                      fontSize: 18,
                     },
                   ]}
                 >
-                  <Text
-                    style={[
-                      {
-                        color: "#ffffff",
-                        fontSize: 18,
-                      },
-                    ]}
-                  >
-                    View More
-                  </Text>
-                </Pressable>
-              </View>
+                  View More
+                </Text>
+              </Pressable>
             </View>
           );
         }}
