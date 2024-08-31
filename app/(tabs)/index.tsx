@@ -25,7 +25,6 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(true);
 
   const { loading, filteredEvents, getYourEvents } = useUserContext();
-console.log("here",filteredEvents)
   useEffect(() => {
     getYourEvents();
     Toast.show({
