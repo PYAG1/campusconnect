@@ -109,6 +109,7 @@ export default function RootLayout() {
             <Stack.Screen name="signup" />
 
             <Stack.Screen name="editEvent/index" />
+            <Stack.Screen name="notification/index" />
 
             <Stack.Screen
               options={{

@@ -118,7 +118,7 @@ export default function TabTwoScreen() {
   }, [searchQuery, allEvents]);
   
   const ref = React.useRef<ICarouselInstance>(null);
-
+const {user}= useUserContext()
   const handleLike = (eventID: string) => {
     setLiked((prevLiked) => {
       if (prevLiked.includes(eventID)) {
@@ -364,7 +364,7 @@ export default function TabTwoScreen() {
                       >
                         HostedBy:{" "}
                       </Text>
-                      {item?.hostedBy}
+                      {item?.hostedBy === user.username ? "You":item?.hostedBy}
                     </Text>
                   </View>
               </View>

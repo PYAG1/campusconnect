@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { sizes } from "@/constants/sizes&fonts";
 import { router, useLocalSearchParams } from "expo-router";
-import { ArrowForward, Back, Edit, Trash } from "iconsax-react-native";
+import { ArrowForward, Back, Edit, Notification, Notification1, Trash } from "iconsax-react-native";
 import React, { useEffect, useRef, useState } from "react";
 
 import Entypo from "@expo/vector-icons/Entypo";
@@ -41,6 +41,7 @@ import RBSheet from "react-native-raw-bottom-sheet";
 import { deleteObject, ref } from "firebase/storage";
 import { MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
+import { schedulePushNotification } from "../notification";
 const categoryMapping = {
   "Academic Event": {
     icon: <MaterialIcons name="my-library-books" size={24} color="black" />,
@@ -434,6 +435,27 @@ console.log("here",createdBy)
                 }}
               >
                 <ArrowForward
+                  size="32"
+                  color={Colors.light.blue}
+                  variant="Bulk"
+                />
+                
+              </Pressable>
+              <Pressable
+                onPress={async ()=>{
+                await  schedulePushNotification(event)
+                }}
+                style={{
+                  width: 70,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: 60,
+                  borderRadius: 10,
+                  backgroundColor: Colors.light.tint2,
+                }}
+              >
+                <Notification
                   size="32"
                   color={Colors.light.blue}
                   variant="Bulk"

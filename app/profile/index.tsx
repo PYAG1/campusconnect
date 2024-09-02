@@ -40,7 +40,7 @@ Yaw Gyek
 020299
     </Text>
 </View>
-<Pressable onPress={()=> router.navigate("/signin")} style={{padding:sizes.marginSM}}>
+<Pressable onPress={()=> router.navigate("/notification")} style={{padding:sizes.marginSM}}>
   <Text>Go to sign in</Text>
 </Pressable>
         </SafeAreaView>

@@ -8,8 +8,8 @@ import { sizes } from "@/constants/sizes&fonts";
 import { ImageObject, MapData } from "@/constants/Types";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams } from "expo-router";
-import { addDoc, getDocs, query, where } from "firebase/firestore";
+import { router, useLocalSearchParams } from "expo-router";
+import { addDoc, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { Formik } from "formik";
 import { AddCircle, Map1 } from "iconsax-react-native";
@@ -28,6 +28,7 @@ import {
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function Index() {
   const { userEmail, fetchData, getYourEvents } = useUserContext();
@@ -158,30 +159,33 @@ export default function Index() {
     }
   };
   const [isSubmitting, setisSubmitting] = useState(false)
-  const createEvent = async (data) => {
+  const updateEvent = async (data) => {
     setisSubmitting(true);
     try {
-      const images = (await uploadImages()) as unknown as ImageObject;
-      if (images) {
-        await addDoc(EventRef, {
-          ...data,
-          images: images,
-          createdAt: new Date().toISOString(),
-          createdBy: userEmail,
-          isVerified: false,
-          savedBy: [],
-          eventID: Math.ceil(Math.random() * 1000000000),
-        });
-      }
-      setSelectedImages([]);
-      console.log("Event created successfully");
+
+      setTimeout(() => {
+        
+        setisSubmitting(false);
+        Toast.show({
+          type: "customSuccessToast",
+          text1: `Event Edited`,
+          position: "top",
+          visibilityTime: 3000,
+          text1Style: {
+            fontSize: sizes.fontSize[5],
+          },
+        }); 
+        router.navigate("/(tabs)") 
+      }, 3000);
     } catch (error) {
-      console.error("Error creating event:", error);
+      console.error("Error updating event:", error);
     } finally {
-      setisSubmitting(false);
-      await getYourEvents();
+      // Set isSubmitting to false after 2 seconds
+ 
+ // 2000 milliseconds = 2 seconds
     }
   };
+  
   useEffect(() => {
     fetchEvent()
   },[])
@@ -263,7 +267,7 @@ export default function Index() {
                 },
               }}
               onSubmit={async (values, { resetForm }) => {
-                await createEvent(values);
+                await updateEvent(values);
                 resetForm();
               }}
             >

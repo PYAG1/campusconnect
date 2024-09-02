@@ -78,7 +78,7 @@ const {fetchData}= useUserContext()
         }}
         onSubmit={async (values, { resetForm }) => {
           await signIn(values.email,values.password)
-          router.push("/(tabs)");
+          router.push("/(tabs)/explore");
           resetForm();
         }}
       >
